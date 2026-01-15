@@ -10,7 +10,8 @@ export default defineConfig({
   },
   manifest: {
     name: 'Charognard: Get Followers, Auto Follow & Tracker for Instagram™',
-    permissions: ['tabs', 'storage', 'alarms'],
+    permissions: ['tabs', 'storage', 'alarms', 'cookies'],
+    host_permissions: ['*://*.instagram.com/*'],
     action: {
       default_title: 'Charognard for Instagram™',
     },
