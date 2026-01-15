@@ -22,6 +22,7 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
     <AvatarPrimitive.Image
       className={cn("size-full object-cover", className)}
       data-slot="avatar-image"
+      loading="lazy"
       {...props}
     />
   );
