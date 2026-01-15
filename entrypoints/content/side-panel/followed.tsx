@@ -5,16 +5,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
 import { checkFriendshipStatus, unfollowUser } from '@/lib/instagram';
-import {
-  getFollowedProfiles,
-  removeFollowedProfile,
-  updateFollowedBackStatus,
-  getRemainingDailyActions,
-  incrementDailyActionCount,
-  canPerformAction,
-  getSettings,
-  type FollowedProfile,
-} from '@/lib/storage';
+import type { FollowedProfile } from '@/lib/types';
+import { getFollowedProfiles, removeFollowedProfile, updateFollowedBackStatus } from '@/lib/storage/profiles';
+import { getRemainingDailyActions, incrementDailyActionCount, canPerformAction } from '@/lib/storage/daily-actions';
+import { getSettings } from '@/lib/storage/settings';
 import { toastManager } from '@/components/ui/toast';
 import { RefreshCwIcon, UserMinusIcon, HeartIcon, SearchIcon, XIcon } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipPopup } from '@/components/ui/tooltip';

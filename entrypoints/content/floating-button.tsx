@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipPopup } from '@/components/ui/tooltip';
 import { useAuth } from './hooks/use-auth';
-import { hasCompletedOnboarding } from '@/lib/storage';
+import { hasCompletedOnboarding } from '@/lib/storage/onboarding';
 import { CharognardIcon } from '@/components/icons/charognard-icon';
 import APP from '@/constants/app';
 

@@ -14,7 +14,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from './hooks/use-auth';
 import { followUser, unfollowUser, fetchUserInfo, fetchUserMedia, likePost, unlikePost } from '@/lib/instagram';
-import { hasCompletedOnboarding, setOnboardingCompleted } from '@/lib/storage';
+import { hasCompletedOnboarding, setOnboardingCompleted } from '@/lib/storage/onboarding';
 import type { InstagramUser } from '@/lib/types';
 import { GithubIcon, HeartIcon, UserMinusIcon, HeartOffIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import APP from '@/constants/app';

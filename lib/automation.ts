@@ -1,17 +1,18 @@
 import { fetchSuggestions, followUser, unfollowUser, checkFriendshipStatus } from './instagram';
 import {
   getAutomationSettings,
-  getFollowedProfiles,
-  addFollowedProfile,
-  removeFollowedProfile,
-  updateFollowedBackStatus,
-  canPerformAction,
-  incrementDailyActionCount,
   setLastAutomationRun,
   getAutomationProgress,
   startAutomationProgress,
   updateAutomationProgress,
-} from './storage';
+} from './storage/automation';
+import {
+  getFollowedProfiles,
+  addFollowedProfile,
+  removeFollowedProfile,
+  updateFollowedBackStatus,
+} from './storage/profiles';
+import { canPerformAction, incrementDailyActionCount } from './storage/daily-actions';
 
 export interface AutomationResult {
   followedCount: number;

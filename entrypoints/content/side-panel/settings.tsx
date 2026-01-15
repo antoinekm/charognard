@@ -4,19 +4,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toastManager } from '@/components/ui/toast';
 import { EyeOffIcon } from 'lucide-react';
 import { useHideButton } from '../hooks/use-hide-button';
-import {
-  getRemainingDailyActions,
-  getSettings,
-  updateSettings,
-  getAutomationSettings,
-  updateAutomationSettings,
-  DEFAULT_FOLLOW_LIMIT,
-  DEFAULT_UNFOLLOW_LIMIT,
-  DEFAULT_SKIP_FOLLOWERS,
-  type ScheduleFrequency,
-  type DayOfWeek,
-} from '@/lib/storage';
+import type { ScheduleFrequency, DayOfWeek } from '@/lib/types';
 import { MessageType } from '@/lib/types';
+import { getRemainingDailyActions } from '@/lib/storage/daily-actions';
+import { getSettings, updateSettings } from '@/lib/storage/settings';
+import { getAutomationSettings, updateAutomationSettings } from '@/lib/storage/automation';
+import { DEFAULT_FOLLOW_LIMIT, DEFAULT_UNFOLLOW_LIMIT, DEFAULT_SKIP_FOLLOWERS } from '@/lib/storage';
 import { LimitsSection } from '../components/side-panel/settings/limits-section';
 import { AutomationSection } from '../components/side-panel/settings/automation-section';
 import { StorageSection } from '../components/side-panel/settings/storage-section';

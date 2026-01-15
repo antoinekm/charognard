@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Progress, ProgressTrack, ProgressIndicator } from '@/components/ui/progress';
 import { DatabaseIcon, UsersIcon } from 'lucide-react';
-import { getStorageUsage, formatBytes, type StorageUsage } from '@/lib/storage';
+import type { StorageUsage } from '@/lib/types';
+import { getStorageUsage, formatBytes } from '@/lib/storage/usage';
 
 export function StorageSection() {
   const [usage, setUsage] = useState<StorageUsage | null>(null);

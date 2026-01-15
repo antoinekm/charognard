@@ -7,14 +7,9 @@ import { Tooltip, TooltipTrigger, TooltipPopup } from '@/components/ui/tooltip';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
 import { useAuth } from '../hooks/use-auth';
 import { fetchSuggestions, followUser, unfollowUser, checkFriendshipStatus } from '@/lib/instagram';
-import {
-  addFollowedProfile,
-  removeFollowedProfile,
-  getRemainingDailyActions,
-  incrementDailyActionCount,
-  canPerformAction,
-  getSettings,
-} from '@/lib/storage';
+import { addFollowedProfile, removeFollowedProfile } from '@/lib/storage/profiles';
+import { getRemainingDailyActions, incrementDailyActionCount, canPerformAction } from '@/lib/storage/daily-actions';
+import { getSettings } from '@/lib/storage/settings';
 import type { Suggestion } from '@/lib/types';
 import { toastManager } from '@/components/ui/toast';
 import { RefreshCwIcon, UserPlusIcon, UserMinusIcon, LogInIcon, UsersIcon } from 'lucide-react';
