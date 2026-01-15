@@ -1,5 +1,5 @@
 import type { InstagramUser } from './types';
-import { getCurrentUserId } from './instagram';
+import { getCurrentUserId, getCurrentUserIdAsync } from './instagram';
 
 export interface FollowedProfile {
   user: InstagramUser;
@@ -40,6 +40,8 @@ export interface AutomationSettings {
 interface AccountData {
   followedProfiles: Record<string, FollowedProfile>;
   dailyActions?: DailyActions;
+  settings: UserSettings;
+  automation: AutomationSettings;
 }
 
 export interface OnboardingData {
@@ -88,6 +90,12 @@ function getDefaultStorageData(): StorageData {
 function getDefaultAccountData(): AccountData {
   return {
     followedProfiles: {},
+    settings: {
+      followLimit: DEFAULT_FOLLOW_LIMIT,
+      unfollowLimit: DEFAULT_UNFOLLOW_LIMIT,
+      skipFollowers: DEFAULT_SKIP_FOLLOWERS,
+    },
+    automation: { ...DEFAULT_AUTOMATION },
   };
 }
 
@@ -127,6 +135,8 @@ async function getStorageData(): Promise<StorageData> {
               unfollowCount: Math.ceil(legacyData.dailyActions.count / 2),
             }
           : undefined,
+        settings: migratedData.settings,
+        automation: migratedData.automation,
       };
     }
     await setStorageData(migratedData);
@@ -169,10 +179,50 @@ function getCurrentAccountId(): string {
   return userId;
 }
 
+async function getCurrentAccountIdAsync(): Promise<string> {
+  const userId = await getCurrentUserIdAsync();
+  if (!userId) {
+    throw new Error('Not logged in to Instagram');
+  }
+  return userId;
+}
+
 async function getAccountData(): Promise<AccountData> {
   const data = await getStorageData();
   const accountId = getCurrentAccountId();
-  return data.accounts[accountId] || getDefaultAccountData();
+
+  // Account doesn't exist yet - create with defaults
+  if (!data.accounts[accountId]) {
+    return getDefaultAccountData();
+  }
+
+  const accountData = data.accounts[accountId];
+
+  // Migration: if account exists but doesn't have settings/automation yet,
+  // migrate from global settings (for existing users)
+  let needsMigration = false;
+
+  if (!accountData.settings) {
+    accountData.settings = data.settings || {
+      followLimit: DEFAULT_FOLLOW_LIMIT,
+      unfollowLimit: DEFAULT_UNFOLLOW_LIMIT,
+      skipFollowers: DEFAULT_SKIP_FOLLOWERS,
+    };
+    needsMigration = true;
+  }
+
+  if (!accountData.automation) {
+    accountData.automation = data.automation || { ...DEFAULT_AUTOMATION };
+    needsMigration = true;
+  }
+
+  // Save migrated data
+  if (needsMigration) {
+    data.accounts[accountId] = accountData;
+    await setStorageData(data);
+  }
+
+  return accountData;
 }
 
 async function setAccountData(accountData: AccountData): Promise<void> {
@@ -182,16 +232,58 @@ async function setAccountData(accountData: AccountData): Promise<void> {
   await setStorageData(data);
 }
 
+// Async versions for background script (uses browser.cookies API)
+async function getAccountDataAsync(): Promise<AccountData> {
+  const data = await getStorageData();
+  const accountId = await getCurrentAccountIdAsync();
+
+  if (!data.accounts[accountId]) {
+    return getDefaultAccountData();
+  }
+
+  const accountData = data.accounts[accountId];
+
+  let needsMigration = false;
+
+  if (!accountData.settings) {
+    accountData.settings = data.settings || {
+      followLimit: DEFAULT_FOLLOW_LIMIT,
+      unfollowLimit: DEFAULT_UNFOLLOW_LIMIT,
+      skipFollowers: DEFAULT_SKIP_FOLLOWERS,
+    };
+    needsMigration = true;
+  }
+
+  if (!accountData.automation) {
+    accountData.automation = data.automation || { ...DEFAULT_AUTOMATION };
+    needsMigration = true;
+  }
+
+  if (needsMigration) {
+    data.accounts[accountId] = accountData;
+    await setStorageData(data);
+  }
+
+  return accountData;
+}
+
+async function setAccountDataAsync(accountData: AccountData): Promise<void> {
+  const data = await getStorageData();
+  const accountId = await getCurrentAccountIdAsync();
+  data.accounts[accountId] = accountData;
+  await setStorageData(data);
+}
+
 // Settings functions
 export async function getSettings(): Promise<UserSettings> {
-  const data = await getStorageData();
-  return data.settings;
+  const accountData = await getAccountData();
+  return accountData.settings;
 }
 
 export async function updateSettings(settings: Partial<UserSettings>): Promise<void> {
-  const data = await getStorageData();
-  data.settings = { ...data.settings, ...settings };
-  await setStorageData(data);
+  const accountData = await getAccountData();
+  accountData.settings = { ...accountData.settings, ...settings };
+  await setAccountData(accountData);
 }
 
 // Profile functions
@@ -301,24 +393,24 @@ export async function incrementDailyActionCount(actionType: ActionType): Promise
   await setAccountData(accountData);
 }
 
-// Automation functions
+// Automation functions (use async versions for background script compatibility)
 export async function getAutomationSettings(): Promise<AutomationSettings> {
-  const data = await getStorageData();
-  return data.automation;
+  const accountData = await getAccountDataAsync();
+  return accountData.automation;
 }
 
 export async function updateAutomationSettings(
   settings: Partial<AutomationSettings>
 ): Promise<void> {
-  const data = await getStorageData();
-  data.automation = { ...data.automation, ...settings };
-  await setStorageData(data);
+  const accountData = await getAccountDataAsync();
+  accountData.automation = { ...accountData.automation, ...settings };
+  await setAccountDataAsync(accountData);
 }
 
 export async function setLastAutomationRun(): Promise<void> {
-  const data = await getStorageData();
-  data.automation.lastRunAt = Date.now();
-  await setStorageData(data);
+  const accountData = await getAccountDataAsync();
+  accountData.automation.lastRunAt = Date.now();
+  await setAccountDataAsync(accountData);
 }
 
 // Onboarding functions

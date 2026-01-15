@@ -12,7 +12,29 @@ export function getCookie(name: string): string | null {
 }
 
 export function getCurrentUserId(): string | null {
-  return getCookie('ds_user_id');
+  // Only works in content script context (has document)
+  if (typeof document !== 'undefined') {
+    return getCookie('ds_user_id');
+  }
+  return null;
+}
+
+export async function getCurrentUserIdAsync(): Promise<string | null> {
+  // First try document.cookie (content script)
+  if (typeof document !== 'undefined') {
+    return getCookie('ds_user_id');
+  }
+
+  // Fallback to browser.cookies API (background script)
+  try {
+    const cookie = await browser.cookies.get({
+      url: 'https://www.instagram.com',
+      name: 'ds_user_id',
+    });
+    return cookie?.value || null;
+  } catch {
+    return null;
+  }
 }
 
 function getHeaders(): HeadersInit {
