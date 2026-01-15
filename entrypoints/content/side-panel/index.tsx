@@ -29,7 +29,12 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-        <h2 className="font-heading font-semibold text-lg">{APP.NAME}</h2>
+        <h2 className="font-heading font-semibold text-lg">
+          {APP.NAME}
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+            v{browser.runtime.getManifest().version}
+          </span>
+        </h2>
         <Button variant="ghost" size="icon-sm" onClick={onClose}>
           <XIcon />
         </Button>

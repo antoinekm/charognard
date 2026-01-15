@@ -27,7 +27,12 @@ function AppContent() {
       </div>
 
       <div className="space-y-1">
-        <h1 className="font-heading text-lg font-semibold">{APP.SHORT_NAME}</h1>
+        <h1 className="font-heading text-lg font-semibold">
+          {APP.SHORT_NAME}
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+            v{browser.runtime.getManifest().version}
+          </span>
+        </h1>
         <p className="text-sm text-muted-foreground">
           Open Instagram to use the extension
         </p>
