@@ -23,6 +23,13 @@ export interface UserSettings {
 export type ScheduleFrequency = 'Daily' | 'Weekly';
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 6 = Saturday
 
+export interface AutomationProgress {
+  date: string; // YYYY-MM-DD - the day this automation started
+  targetFollowCount: number;
+  completedFollowCount: number;
+  unfollowCompleted: boolean; // Unfollow runs first and completes in one go
+}
+
 export interface AutomationSettings {
   enabled: boolean;
   frequency: ScheduleFrequency;
@@ -34,7 +41,8 @@ export interface AutomationSettings {
   autoUnfollowEnabled: boolean;
   autoUnfollowDaysThreshold: number; // Unfollow after X days
   autoUnfollowOnlyNonFollowers: boolean; // Only unfollow people who don't follow back
-  lastRunAt?: number; // Timestamp of last automation run
+  lastRunAt?: number; // Timestamp of last completed automation run
+  currentProgress?: AutomationProgress; // Track in-progress automation
 }
 
 interface AccountData {
@@ -410,7 +418,50 @@ export async function updateAutomationSettings(
 export async function setLastAutomationRun(): Promise<void> {
   const accountData = await getAccountDataAsync();
   accountData.automation.lastRunAt = Date.now();
+  accountData.automation.currentProgress = undefined; // Clear progress when completed
   await setAccountDataAsync(accountData);
+}
+
+export async function getAutomationProgress(): Promise<AutomationProgress | undefined> {
+  const accountData = await getAccountDataAsync();
+  const progress = accountData.automation.currentProgress;
+
+  // Check if progress is for today
+  if (progress) {
+    const today = new Date().toISOString().split('T')[0];
+    if (progress.date === today) {
+      return progress;
+    }
+    // Old progress, clear it
+    accountData.automation.currentProgress = undefined;
+    await setAccountDataAsync(accountData);
+  }
+
+  return undefined;
+}
+
+export async function startAutomationProgress(targetFollowCount: number): Promise<void> {
+  const accountData = await getAccountDataAsync();
+  accountData.automation.currentProgress = {
+    date: new Date().toISOString().split('T')[0],
+    targetFollowCount,
+    completedFollowCount: 0,
+    unfollowCompleted: false,
+  };
+  await setAccountDataAsync(accountData);
+}
+
+export async function updateAutomationProgress(
+  updates: Partial<AutomationProgress>
+): Promise<void> {
+  const accountData = await getAccountDataAsync();
+  if (accountData.automation.currentProgress) {
+    accountData.automation.currentProgress = {
+      ...accountData.automation.currentProgress,
+      ...updates,
+    };
+    await setAccountDataAsync(accountData);
+  }
 }
 
 // Onboarding functions

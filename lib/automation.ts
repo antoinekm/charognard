@@ -8,6 +8,9 @@ import {
   canPerformAction,
   incrementDailyActionCount,
   setLastAutomationRun,
+  getAutomationProgress,
+  startAutomationProgress,
+  updateAutomationProgress,
 } from './storage';
 
 export interface AutomationResult {
@@ -35,8 +38,18 @@ export async function runAutomation(): Promise<AutomationResult> {
     return result;
   }
 
-  // Auto-unfollow first (so we free up follow slots)
-  if (settings.autoUnfollowEnabled) {
+  // Check if there's an in-progress automation to resume
+  let progress = await getAutomationProgress();
+  const isResuming = !!progress;
+
+  if (!progress) {
+    // Start new automation progress
+    await startAutomationProgress(settings.autoFollowCount);
+    progress = await getAutomationProgress();
+  }
+
+  // Auto-unfollow first (so we free up follow slots) - skip if already done
+  if (settings.autoUnfollowEnabled && !progress?.unfollowCompleted) {
     try {
       const unfollowResult = await runAutoUnfollow(
         settings.autoUnfollowDaysThreshold,
@@ -44,29 +57,47 @@ export async function runAutomation(): Promise<AutomationResult> {
       );
       result.unfollowedCount = unfollowResult.count;
       result.errors.push(...unfollowResult.errors);
+      await updateAutomationProgress({ unfollowCompleted: true });
     } catch (error) {
       result.errors.push(`Auto-unfollow failed: ${error}`);
     }
   }
 
-  // Auto-follow
-  if (settings.autoFollowEnabled) {
-    try {
-      const followResult = await runAutoFollow(settings.autoFollowCount);
-      result.followedCount = followResult.count;
-      result.errors.push(...followResult.errors);
-    } catch (error) {
-      result.errors.push(`Auto-follow failed: ${error}`);
+  // Auto-follow - resume from where we left off
+  if (settings.autoFollowEnabled && progress) {
+    const remainingFollows = progress.targetFollowCount - progress.completedFollowCount;
+
+    if (remainingFollows > 0) {
+      if (isResuming) {
+        console.log(`[Charognard] Resuming automation: ${progress.completedFollowCount}/${progress.targetFollowCount} follows done`);
+      }
+
+      try {
+        const alreadyCompleted = progress.completedFollowCount;
+        const followResult = await runAutoFollow(remainingFollows, async (sessionCount) => {
+          // Update progress after each follow (alreadyCompleted + current session count)
+          await updateAutomationProgress({
+            completedFollowCount: alreadyCompleted + sessionCount,
+          });
+        });
+        result.followedCount = followResult.count;
+        result.errors.push(...followResult.errors);
+      } catch (error) {
+        result.errors.push(`Auto-follow failed: ${error}`);
+      }
     }
   }
 
-  // Mark automation as completed
+  // Mark as completed (this also clears the progress)
   await setLastAutomationRun();
 
   return result;
 }
 
-async function runAutoFollow(maxCount: number): Promise<{ count: number; errors: string[] }> {
+async function runAutoFollow(
+  maxCount: number,
+  onProgress?: (completedCount: number) => Promise<void>
+): Promise<{ count: number; errors: string[] }> {
   const errors: string[] = [];
   let count = 0;
   let consecutiveEmptyBatches = 0;
@@ -104,6 +135,11 @@ async function runAutoFollow(maxCount: number): Promise<{ count: number; errors:
           await addFollowedProfile(suggestion.user);
           count++;
           followedInBatch++;
+
+          // Save progress after each follow
+          if (onProgress) {
+            await onProgress(count);
+          }
 
           // Random delay between actions
           if (count < maxCount) {

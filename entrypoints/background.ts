@@ -1,5 +1,5 @@
 import { MessageType, type ExtensionMessage, type MessageResponse } from '@/lib/types';
-import { getAutomationSettings, type AutomationSettings } from '@/lib/storage';
+import { getAutomationSettings, getAutomationProgress, type AutomationSettings } from '@/lib/storage';
 
 const ALARM_NAME = 'ig-automation';
 
@@ -33,6 +33,22 @@ async function setupAlarm(): Promise<void> {
     return;
   }
 
+  // Check if there's an in-progress automation to resume
+  const progress = await getAutomationProgress();
+  if (progress && progress.completedFollowCount < progress.targetFollowCount) {
+    console.log('[Charognard] In-progress automation detected, resuming...');
+    await browser.alarms.create(ALARM_NAME, { delayInMinutes: 0.1 });
+    return;
+  }
+
+  // Check if we missed today's automation and should run it now
+  const shouldCatchUp = checkMissedAutomation(settings);
+  if (shouldCatchUp) {
+    console.log('[Charognard] Missed automation detected, running catch-up...');
+    await browser.alarms.create(ALARM_NAME, { delayInMinutes: 0.1 });
+    return;
+  }
+
   const nextRun = calculateNextRunTime(settings);
   const delayInMinutes = Math.max(1, (nextRun - Date.now()) / 60000);
 
@@ -42,6 +58,38 @@ async function setupAlarm(): Promise<void> {
     // For daily, we can use periodInMinutes
     periodInMinutes: settings.frequency === 'Daily' ? 24 * 60 : undefined,
   });
+}
+
+function checkMissedAutomation(settings: AutomationSettings): boolean {
+  const now = new Date();
+  const scheduledTime = new Date();
+  scheduledTime.setHours(settings.hour, settings.minute, 0, 0);
+
+  // Check if scheduled time has passed today
+  if (scheduledTime >= now) {
+    return false; // Not yet time
+  }
+
+  // For weekly, also check if it's the right day
+  if (settings.frequency === 'Weekly' && now.getDay() !== settings.dayOfWeek) {
+    return false; // Not the right day
+  }
+
+  // Check if automation already ran today
+  if (settings.lastRunAt) {
+    const lastRun = new Date(settings.lastRunAt);
+    const isSameDay =
+      lastRun.getDate() === now.getDate() &&
+      lastRun.getMonth() === now.getMonth() &&
+      lastRun.getFullYear() === now.getFullYear();
+
+    if (isSameDay) {
+      return false; // Already ran today
+    }
+  }
+
+  // Scheduled time passed, correct day (for weekly), and hasn't run today
+  return true;
 }
 
 function calculateNextRunTime(settings: AutomationSettings): number {
@@ -97,12 +145,12 @@ async function runAutomation(): Promise<void> {
     // Send message to content script to run automation
     await browser.tabs.sendMessage(igTab.id, { type: MessageType.RunAutomation });
 
-    // For weekly schedule, we need to set the next alarm
-    if (settings.frequency === 'Weekly') {
-      await setupAlarm();
-    }
+    // Reschedule for next run (handles both catch-up and weekly cases)
+    await setupAlarm();
   } catch (error) {
     console.error('[Charognard] Automation failed:', error);
+    // Still reschedule even on error to not break future runs
+    await setupAlarm();
   }
 }
 
