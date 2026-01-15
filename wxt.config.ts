@@ -8,8 +8,11 @@ export default defineConfig({
   autoIcons: {
     baseIconPath: 'public/icon.svg',
   },
-  manifest: {
-    name: 'Charognard: Get Followers, Auto Follow & Tracker for Instagram™',
+  manifest: ({ browser }) => ({
+    name:
+      browser === 'firefox'
+        ? 'Charognard: Mass Follow for Instagram™'
+        : 'Charognard: Get Followers, Auto Follow & Tracker for Instagram™',
     permissions: ['tabs', 'storage', 'alarms', 'cookies'],
     host_permissions: ['*://*.instagram.com/*'],
     action: {
@@ -24,6 +27,17 @@ export default defineConfig({
         },
       },
     },
+  }),
+  zip: {
+    excludeSources: [
+      'logs',
+      '*.log',
+      'stats.html',
+      'stats-*.json',
+      'web-ext.config.ts',
+      'temp/**',
+      '.env*',
+    ],
   },
   vite: () => ({
     plugins: [tailwindcss()],
