@@ -19,6 +19,7 @@ import {
 import { MessageType } from '@/lib/types';
 import { LimitsSection } from '../components/side-panel/settings/limits-section';
 import { AutomationSection } from '../components/side-panel/settings/automation-section';
+import { StorageSection } from '../components/side-panel/settings/storage-section';
 import { FeedbackSection } from '../components/side-panel/settings/feedback-section';
 
 interface SettingsTabProps {
@@ -214,6 +215,8 @@ export function SettingsTab({ container }: SettingsTabProps) {
             The button will reappear when you refresh the page.
           </p>
         </div>
+
+        <StorageSection />
 
         <FeedbackSection />
       </div>
