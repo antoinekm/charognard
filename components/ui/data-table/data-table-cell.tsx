@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, MouseEventHandler } from 'react';
 import { cn } from '@/lib/utils';
 
 interface DataTableCellProps {
@@ -6,9 +6,10 @@ interface DataTableCellProps {
   className?: string;
   align?: 'left' | 'center' | 'right';
   noPadding?: boolean;
+  onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
-export function DataTableCell({ children, className, align = 'left', noPadding }: DataTableCellProps) {
+export function DataTableCell({ children, className, align = 'left', noPadding, onClick }: DataTableCellProps) {
   return (
     <div
       className={cn(
@@ -19,6 +20,7 @@ export function DataTableCell({ children, className, align = 'left', noPadding }
         className
       )}
       data-slot="data-table-cell"
+      onClick={onClick}
     >
       {children}
     </div>
