@@ -146,3 +146,15 @@ export interface StorageUsage {
 }
 
 export type ActionType = 'follow' | 'unfollow';
+
+// Lists
+export interface ProspectList {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
+export interface ProspectListUser {
+  user: InstagramUser;
+  addedAt: number;
+}

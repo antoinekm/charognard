@@ -3,6 +3,8 @@ import type {
   DailyActions,
   UserSettings,
   AutomationSettings,
+  ProspectList,
+  ProspectListUser,
 } from '@/lib/types';
 import { getCurrentUserId, getCurrentUserIdAsync } from '@/lib/instagram';
 
@@ -11,6 +13,8 @@ export interface AccountData {
   dailyActions?: DailyActions;
   settings: UserSettings;
   automation: AutomationSettings;
+  lists?: Record<string, ProspectList>;
+  listUsers?: Record<string, Record<string, ProspectListUser>>;
 }
 
 interface StorageData {
