@@ -1,6 +1,6 @@
 import type { ReactNode, CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
-import { ArrowUpIcon, ArrowDownIcon, ArrowUpDownIcon } from 'lucide-react';
+import { ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
 
 interface DataTableHeaderProps {
   children: ReactNode;
@@ -48,14 +48,12 @@ export function DataTableHeaderCell({
   const content = (
     <>
       <span className="truncate">{children}</span>
-      {sortable && (
+      {sortable && sortDirection && (
         <span className="ml-1 shrink-0">
           {sortDirection === 'asc' ? (
             <ArrowUpIcon className="size-3" />
-          ) : sortDirection === 'desc' ? (
-            <ArrowDownIcon className="size-3" />
           ) : (
-            <ArrowUpDownIcon className="size-3 opacity-50" />
+            <ArrowDownIcon className="size-3" />
           )}
         </span>
       )}
