@@ -28,6 +28,16 @@ export function App({ container }: AppProps) {
     return () => document.removeEventListener('charognard:open-panel', handleOpenPanel);
   }, []);
 
+  // Check if we should open panel on load (from extension icon click)
+  useEffect(() => {
+    browser.storage.local.get('openPanelOnLoad').then((result) => {
+      if (result.openPanelOnLoad) {
+        setIsOpen(true);
+        browser.storage.local.remove('openPanelOnLoad');
+      }
+    });
+  }, []);
+
   return (
     <ThemeProvider container={container}>
       <AuthProvider>

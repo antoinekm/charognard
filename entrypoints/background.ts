@@ -7,6 +7,25 @@ export default defineBackground(() => {
   // Set up alarm on startup
   setupAlarm();
 
+  // Handle extension icon click
+  browser.action.onClicked.addListener(async () => {
+    const tabs = await browser.tabs.query({ url: '*://*.instagram.com/*' });
+
+    if (tabs.length > 0 && tabs[0].id) {
+      // Focus the Instagram tab
+      await browser.tabs.update(tabs[0].id, { active: true });
+      if (tabs[0].windowId) {
+        await browser.windows.update(tabs[0].windowId, { focused: true });
+      }
+      // Open the panel
+      await browser.tabs.sendMessage(tabs[0].id, { type: MessageType.OpenPanel });
+    } else {
+      // Set flag to open panel when content script loads
+      await browser.storage.local.set({ openPanelOnLoad: true });
+      await browser.tabs.create({ url: 'https://www.instagram.com/' });
+    }
+  });
+
   // Listen for alarm events
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_NAME) {
