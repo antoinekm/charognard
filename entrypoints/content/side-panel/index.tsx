@@ -23,7 +23,7 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-[380px] bg-background border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 flex flex-col ${
+      className={`fixed top-0 right-0 h-full w-[40vw] bg-background border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 flex flex-col ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
@@ -43,16 +43,16 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
         <div className="px-4 pt-2 shrink-0">
-          <TabsList className="w-full">
-            <TabsTab value="suggestions" className="flex-1">
+          <TabsList>
+            <TabsTab value="suggestions">
               <UsersIcon className="size-4" />
               Suggestions
             </TabsTab>
-            <TabsTab value="followed" className="flex-1">
+            <TabsTab value="followed">
               <HeartIcon className="size-4" />
               Followed
             </TabsTab>
-            <TabsTab value="settings" className="flex-1">
+            <TabsTab value="settings">
               <SettingsIcon className="size-4" />
               Settings
             </TabsTab>
