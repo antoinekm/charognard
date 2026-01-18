@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTab, TabsPanel } from '@/components/ui/tabs';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
-import { XIcon, UsersIcon, HeartIcon, SettingsIcon, LogInIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react';
+import { XIcon, UsersIcon, HeartIcon, SettingsIcon, LogInIcon, RefreshCwIcon } from 'lucide-react';
 import { useAuth } from '../hooks/use-auth';
 import APP from '@/constants/app';
 import { SuggestionsTab } from './suggestions';
@@ -73,9 +73,9 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
               </EmptyHeader>
               <EmptyContent>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => window.open('https://www.instagram.com/accounts/login/', '_blank')}>
-                    <ExternalLinkIcon />
-                    Open Instagram
+                  <Button size="sm" onClick={() => (window.location.href = 'https://www.instagram.com/accounts/login/')}>
+                    <LogInIcon />
+                    Log in
                   </Button>
                   <Button size="sm" variant="outline" onClick={checkAuth}>
                     <RefreshCwIcon />
@@ -103,9 +103,9 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
               </EmptyHeader>
               <EmptyContent>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => window.open('https://www.instagram.com/accounts/login/', '_blank')}>
-                    <ExternalLinkIcon />
-                    Open Instagram
+                  <Button size="sm" onClick={() => (window.location.href = 'https://www.instagram.com/accounts/login/')}>
+                    <LogInIcon />
+                    Log in
                   </Button>
                   <Button size="sm" variant="outline" onClick={checkAuth}>
                     <RefreshCwIcon />
@@ -133,9 +133,9 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
               </EmptyHeader>
               <EmptyContent>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => window.open('https://www.instagram.com/accounts/login/', '_blank')}>
-                    <ExternalLinkIcon />
-                    Open Instagram
+                  <Button size="sm" onClick={() => (window.location.href = 'https://www.instagram.com/accounts/login/')}>
+                    <LogInIcon />
+                    Log in
                   </Button>
                   <Button size="sm" variant="outline" onClick={checkAuth}>
                     <RefreshCwIcon />
