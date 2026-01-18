@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Spinner } from '@/components/ui/spinner';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Tooltip, TooltipTrigger, TooltipPopup } from '@/components/ui/tooltip';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
+import { DataTable, DataTableBody } from '@/components/ui/data-table/data-table';
+import { DataTableHeader, DataTableHeaderCell, type SortDirection } from '@/components/ui/data-table/data-table-header';
+import { DataTableRow } from '@/components/ui/data-table/data-table-row';
+import { DataTableCell } from '@/components/ui/data-table/data-table-cell';
+import { DataTableUserCell } from '@/components/ui/data-table/data-table-user-cell';
 import { useAuth } from '../hooks/use-auth';
 import { fetchSuggestions, followUser, unfollowUser, checkFriendshipStatus } from '@/lib/instagram';
 import { addFollowedProfile, removeFollowedProfile } from '@/lib/storage/profiles';
@@ -13,10 +17,11 @@ import { getSettings } from '@/lib/storage/settings';
 import type { Suggestion } from '@/lib/types';
 import { toastManager } from '@/components/ui/toast';
 import { RefreshCwIcon, UserPlusIcon, UserMinusIcon, LogInIcon, UsersIcon } from 'lucide-react';
-import { ProfileCard } from '../components/ui/profile-card';
+import { VerifiedBadge } from '../components/ui/verified-badge';
 import { ActionFooter } from '../components/ui/action-footer';
 import { SelectionBar } from '../components/side-panel/suggestions/selection-bar';
 import { ProfileListSkeleton } from '../components/side-panel/suggestions/profile-list-skeleton';
+import type { SuggestionFilters } from '../components/side-panel/suggestions/filter-popover';
 
 interface SuggestionsTabProps {
   container: HTMLElement;
@@ -35,9 +40,11 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [massFollowing, setMassFollowing] = useState(false);
   const [massFollowProgress, setMassFollowProgress] = useState({ current: 0, total: 0 });
-  const [includePrivate, setIncludePrivate] = useState(false);
+  const [filters, setFilters] = useState<SuggestionFilters>({ privacy: [], verified: [] });
   const [remainingFollows, setRemainingFollows] = useState<number>(150);
   const [followLimit, setFollowLimit] = useState<number>(150);
+  const [sortKey, setSortKey] = useState<'username' | 'reason' | 'privacy' | 'verified' | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const loadSuggestions = async (append = false) => {
     if (append) {
@@ -140,9 +147,64 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
     });
   };
 
-  const selectableUsers = suggestions.filter(
-    (s) => !followedUsers.has(s.user.pk) && (includePrivate || !s.user.is_private)
+  const filteredSuggestions = useMemo(() => {
+    return suggestions.filter((s) => {
+      // Privacy filter: empty or both = all, single value = filter
+      if (filters.privacy.length === 1) {
+        if (filters.privacy[0] === 'public' && s.user.is_private) return false;
+        if (filters.privacy[0] === 'private' && !s.user.is_private) return false;
+      }
+      // Verified filter: empty or both = all, single value = filter
+      if (filters.verified.length === 1) {
+        if (filters.verified[0] === 'verified' && !s.user.is_verified) return false;
+        if (filters.verified[0] === 'not-verified' && s.user.is_verified) return false;
+      }
+      return true;
+    });
+  }, [suggestions, filters]);
+
+  const selectableUsers = filteredSuggestions.filter(
+    (s) => !followedUsers.has(s.user.pk)
   );
+
+  const handleSort = (key: 'username' | 'reason' | 'privacy' | 'verified') => {
+    if (sortKey === key) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortKey(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortKey(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedSuggestions = useMemo(() => {
+    if (!sortKey || !sortDirection) return filteredSuggestions;
+
+    return [...filteredSuggestions].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortKey) {
+        case 'username':
+          comparison = a.user.username.localeCompare(b.user.username);
+          break;
+        case 'reason':
+          comparison = (a.social_context || '').localeCompare(b.social_context || '');
+          break;
+        case 'privacy':
+          comparison = Number(a.user.is_private) - Number(b.user.is_private);
+          break;
+        case 'verified':
+          comparison = Number(b.user.is_verified) - Number(a.user.is_verified);
+          break;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredSuggestions, sortKey, sortDirection]);
 
   const handleMassFollow = async () => {
     const usersToFollow = suggestions.filter(
@@ -234,17 +296,11 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
       <SelectionBar
         loading={loading}
         hasItems={suggestions.length > 0}
-        selectedCount={selectedUsers.size}
-        selectableCount={selectableUsers.length}
         massFollowing={massFollowing}
-        massFollowProgress={massFollowProgress}
-        remainingFollows={remainingFollows}
-        includePrivate={includePrivate}
-        onSelectAll={() => setSelectedUsers(new Set(selectableUsers.map((s) => s.user.pk)))}
-        onDeselectAll={() => setSelectedUsers(new Set())}
-        onMassFollow={handleMassFollow}
+        filters={filters}
+        onFiltersChange={setFilters}
         onRefresh={() => loadSuggestions()}
-        onIncludePrivateChange={setIncludePrivate}
+        container={container}
       />
 
       <ScrollArea className="flex-1">
@@ -294,71 +350,142 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
             </EmptyContent>
           </Empty>
         ) : (
-          <div className="p-2">
-            {suggestions.map((suggestion) => {
-              const isFollowed = followedUsers.has(suggestion.user.pk);
-              const isFollowing = followingUser === suggestion.user.pk;
-
-              return (
-                <ProfileCard
-                  key={suggestion.user.pk}
-                  user={suggestion.user}
-                  leftSlot={
-                    !isFollowed &&
-                    (suggestion.user.is_private && !includePrivate ? (
-                      <Tooltip>
-                        <TooltipTrigger className="shrink-0 cursor-not-allowed">
-                          <Checkbox disabled className="opacity-40" />
-                        </TooltipTrigger>
-                        <TooltipPopup container={container}>
-                          Enable "Include private accounts" to select
-                        </TooltipPopup>
-                      </Tooltip>
-                    ) : (
-                      <Checkbox
-                        checked={selectedUsers.has(suggestion.user.pk)}
-                        onCheckedChange={() => toggleSelectUser(suggestion.user.pk)}
-                        disabled={massFollowing}
-                        className="cursor-pointer"
-                      />
-                    ))
-                  }
-                  infoSlot={
-                    suggestion.social_context && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
-                        {suggestion.social_context}
-                      </p>
-                    )
-                  }
-                >
-                  <Button
-                    variant={isFollowed ? 'secondary' : 'default'}
-                    size="sm"
-                    onClick={() =>
-                      isFollowed ? handleUnfollow(suggestion.user.pk) : handleFollow(suggestion.user.pk)
+          <DataTable>
+            <DataTableHeader columns="40px minmax(100px, 1fr) 1fr 100px 100px 90px">
+              <DataTableHeaderCell>
+                <Checkbox
+                  checked={selectedUsers.size === selectableUsers.length && selectableUsers.length > 0}
+                  indeterminate={selectedUsers.size > 0 && selectedUsers.size < selectableUsers.length}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedUsers(new Set(selectableUsers.map((s) => s.user.pk)));
+                    } else {
+                      setSelectedUsers(new Set());
                     }
-                    disabled={isFollowing || remainingFollows === 0}
+                  }}
+                  disabled={massFollowing || selectableUsers.length === 0}
+                  className="cursor-pointer"
+                />
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                sortable
+                sortDirection={sortKey === 'username' ? sortDirection : null}
+                onSort={() => handleSort('username')}
+              >
+                User
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                sortable
+                sortDirection={sortKey === 'reason' ? sortDirection : null}
+                onSort={() => handleSort('reason')}
+              >
+                Reason
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                align="center"
+                sortable
+                sortDirection={sortKey === 'privacy' ? sortDirection : null}
+                onSort={() => handleSort('privacy')}
+              >
+                Privacy
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                align="center"
+                sortable
+                sortDirection={sortKey === 'verified' ? sortDirection : null}
+                onSort={() => handleSort('verified')}
+              >
+                Verified
+              </DataTableHeaderCell>
+              <DataTableHeaderCell className="p-0! justify-center">
+                <Button
+                  size="xs"
+                  onClick={handleMassFollow}
+                  disabled={massFollowing || remainingFollows === 0 || selectedUsers.size === 0}
+                  className={selectedUsers.size === 0 ? 'invisible' : ''}
+                >
+                  {massFollowing ? (
+                    <>
+                      <Spinner className="size-3" />
+                      {massFollowProgress.current}/{massFollowProgress.total}
+                    </>
+                  ) : (
+                    <>
+                      <UserPlusIcon className="size-3" />
+                      Follow {selectedUsers.size || 0}
+                    </>
+                  )}
+                </Button>
+              </DataTableHeaderCell>
+            </DataTableHeader>
+            <DataTableBody>
+              {sortedSuggestions.map((suggestion) => {
+                const isFollowed = followedUsers.has(suggestion.user.pk);
+                const isFollowing = followingUser === suggestion.user.pk;
+
+                return (
+                  <DataTableRow
+                    key={suggestion.user.pk}
+                    columns="40px minmax(100px, 1fr) 1fr 100px 100px 90px"
+                    selected={selectedUsers.has(suggestion.user.pk)}
                   >
-                    {isFollowing ? (
-                      <Spinner className="size-4" />
-                    ) : isFollowed ? (
-                      <>
-                        <UserMinusIcon className="size-4" />
-                        Following
-                      </>
-                    ) : (
-                      <>
-                        <UserPlusIcon className="size-4" />
-                        Follow
-                      </>
-                    )}
-                  </Button>
-                </ProfileCard>
-              );
-            })}
+                    <DataTableCell>
+                      {!isFollowed && (
+                        <Checkbox
+                          checked={selectedUsers.has(suggestion.user.pk)}
+                          onCheckedChange={() => toggleSelectUser(suggestion.user.pk)}
+                          disabled={massFollowing}
+                          className="cursor-pointer"
+                        />
+                      )}
+                    </DataTableCell>
+                    <DataTableCell noPadding>
+                      <DataTableUserCell user={suggestion.user} />
+                    </DataTableCell>
+                    <DataTableCell>
+                      <span className="text-sm text-muted-foreground truncate">
+                        {suggestion.social_context || '—'}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell align="center">
+                      <span className="text-sm text-muted-foreground">
+                        {suggestion.user.is_private ? 'Private' : 'Public'}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell align="center">
+                      {suggestion.user.is_verified && <VerifiedBadge />}
+                    </DataTableCell>
+                    <DataTableCell noPadding className="flex items-center justify-center">
+                      <Button
+                        variant={isFollowed ? 'secondary' : 'default'}
+                        size="xs"
+                        onClick={() =>
+                          isFollowed ? handleUnfollow(suggestion.user.pk) : handleFollow(suggestion.user.pk)
+                        }
+                        disabled={isFollowing || remainingFollows === 0}
+                      >
+                        {isFollowing ? (
+                          <Spinner className="size-3" />
+                        ) : isFollowed ? (
+                          <>
+                            <UserMinusIcon className="size-3" />
+                            Following
+                          </>
+                        ) : (
+                          <>
+                            <UserPlusIcon className="size-3" />
+                            Follow
+                          </>
+                        )}
+                      </Button>
+                    </DataTableCell>
+                  </DataTableRow>
+                );
+              })}
+            </DataTableBody>
 
             {hasMore && (
-              <div className="p-3 text-center">
+              <div className="p-3 text-center border-t border-border/50">
                 <Button
                   variant="outline"
                   size="sm"
@@ -370,7 +497,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                 </Button>
               </div>
             )}
-          </div>
+          </DataTable>
         )}
       </ScrollArea>
 
