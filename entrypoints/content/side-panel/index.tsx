@@ -23,7 +23,7 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-[40vw] bg-background border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 flex flex-col ${
+      className={`fixed top-0 right-0 h-full w-[60vw] bg-background border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 flex flex-col ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
