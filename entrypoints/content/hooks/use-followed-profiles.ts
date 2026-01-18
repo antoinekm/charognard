@@ -181,6 +181,24 @@ export function useFollowedProfiles() {
     setMassUnfollowProgress({ current: 0, total: 0 });
   }, [profiles, selectedUsers, refreshRemainingActions]);
 
+  const handleMassRemoveFromList = useCallback(async () => {
+    const usersToRemove = profiles.filter((p) => selectedUsers.has(p.user.pk));
+
+    if (usersToRemove.length === 0) return;
+
+    for (const profile of usersToRemove) {
+      try {
+        await removeFollowedProfile(profile.user.pk);
+      } catch (err) {
+        console.error('Failed to remove from list:', profile.user.username, err);
+      }
+    }
+
+    setProfiles((prev) => prev.filter((p) => !selectedUsers.has(p.user.pk)));
+    setSelectedUsers(new Set());
+    toastManager.add({ title: `Removed ${usersToRemove.length} users from list`, type: 'success' });
+  }, [profiles, selectedUsers]);
+
   useEffect(() => {
     loadProfiles();
   }, [loadProfiles]);
@@ -218,6 +236,9 @@ export function useFollowedProfiles() {
     massUnfollowing,
     massUnfollowProgress,
     handleMassUnfollow,
+
+    // Mass remove from list
+    handleMassRemoveFromList,
 
     // Filter
     filterNotFollowingBack,

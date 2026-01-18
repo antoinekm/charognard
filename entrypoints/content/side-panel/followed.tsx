@@ -1,11 +1,16 @@
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Spinner } from '@/components/ui/spinner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
 import { Tooltip, TooltipTrigger, TooltipPopup } from '@/components/ui/tooltip';
+import { DataTable, DataTableBody } from '@/components/ui/data-table/data-table';
+import { DataTableHeader, DataTableHeaderCell, type SortDirection } from '@/components/ui/data-table/data-table-header';
+import { DataTableRow } from '@/components/ui/data-table/data-table-row';
+import { DataTableCell } from '@/components/ui/data-table/data-table-cell';
+import { DataTableUserCell } from '@/components/ui/data-table/data-table-user-cell';
 import { RefreshCwIcon, UserMinusIcon, HeartIcon, SearchIcon, XIcon } from 'lucide-react';
-import { ProfileCard } from '../components/ui/profile-card';
 import { ActionFooter } from '../components/ui/action-footer';
 import { FollowBackStatus } from '../components/side-panel/followed/follow-back-status';
 import { FollowedActionBar } from '../components/side-panel/followed/followed-action-bar';
@@ -37,10 +42,60 @@ export function FollowedTab({ container }: FollowedTabProps) {
     massUnfollowing,
     massUnfollowProgress,
     handleMassUnfollow,
+    handleMassRemoveFromList,
     filterNotFollowingBack,
     setFilterNotFollowingBack,
     loadProfiles,
   } = useFollowedProfiles();
+
+  const [sortKey, setSortKey] = useState<'username' | 'followed' | 'status' | 'lastChecked' | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (key: 'username' | 'followed' | 'status' | 'lastChecked') => {
+    if (sortKey === key) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortKey(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortKey(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedProfiles = useMemo(() => {
+    if (!sortKey || !sortDirection) return filteredProfiles;
+
+    return [...filteredProfiles].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortKey) {
+        case 'username':
+          comparison = a.user.username.localeCompare(b.user.username);
+          break;
+        case 'followed':
+          comparison = a.followedAt - b.followedAt;
+          break;
+        case 'status': {
+          // Sort order: not following back (-1) < unknown (0) < following back (1)
+          const statusOrder = (status: boolean | null) => {
+            if (status === false) return -1;
+            if (status === null || status === undefined) return 0;
+            return 1;
+          };
+          comparison = statusOrder(a.followedBack) - statusOrder(b.followedBack);
+          break;
+        }
+        case 'lastChecked':
+          comparison = (a.lastCheckedAt || 0) - (b.lastCheckedAt || 0);
+          break;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredProfiles, sortKey, sortDirection]);
 
   const formatTimeAgo = (timestamp: number) => {
     const diff = Date.now() - timestamp;
@@ -58,14 +113,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
         checkingStatus={checkingStatus}
         checkProgress={checkProgress}
         onCheckAllStatus={checkAllStatus}
-        selectedCount={selectedUsers.size}
-        selectableCount={filteredProfiles.length}
-        onSelectAll={selectAll}
-        onDeselectAll={deselectAll}
         massUnfollowing={massUnfollowing}
-        massUnfollowProgress={massUnfollowProgress}
-        onMassUnfollow={handleMassUnfollow}
-        remainingUnfollows={remainingUnfollows}
         filterNotFollowingBack={filterNotFollowingBack}
         onFilterChange={setFilterNotFollowingBack}
         notFollowingBackCount={notFollowingBackCount}
@@ -110,71 +158,156 @@ export function FollowedTab({ container }: FollowedTabProps) {
             </EmptyContent>
           </Empty>
         ) : (
-          <div className="p-2">
-            {filteredProfiles.map((profile) => {
-              const isUnfollowing = unfollowingUser === profile.user.pk;
-
-              return (
-                <ProfileCard
-                  key={profile.user.pk}
-                  user={profile.user}
-                  leftSlot={
-                    <Checkbox
-                      checked={selectedUsers.has(profile.user.pk)}
-                      onCheckedChange={() => toggleSelectUser(profile.user.pk)}
-                      disabled={massUnfollowing || checkingStatus}
-                      className="cursor-pointer"
-                    />
-                  }
-                  statusSlot={
-                    <FollowBackStatus
-                      followedBack={profile.followedBack}
-                      lastCheckedAt={profile.lastCheckedAt}
-                      container={container}
-                    />
-                  }
-                  infoSlot={
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      Followed {formatTimeAgo(profile.followedAt)}
-                    </p>
-                  }
+          <DataTable>
+            <DataTableHeader columns="40px minmax(100px, 1fr) 100px 100px 100px 100px 40px">
+              <DataTableHeaderCell>
+                <Checkbox
+                  checked={selectedUsers.size === filteredProfiles.length && filteredProfiles.length > 0}
+                  indeterminate={selectedUsers.size > 0 && selectedUsers.size < filteredProfiles.length}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      selectAll();
+                    } else {
+                      deselectAll();
+                    }
+                  }}
+                  disabled={massUnfollowing || checkingStatus || filteredProfiles.length === 0}
+                  className="cursor-pointer"
+                />
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                sortable
+                sortDirection={sortKey === 'username' ? sortDirection : null}
+                onSort={() => handleSort('username')}
+              >
+                User
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                sortable
+                sortDirection={sortKey === 'followed' ? sortDirection : null}
+                onSort={() => handleSort('followed')}
+              >
+                Followed
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                sortable
+                sortDirection={sortKey === 'status' ? sortDirection : null}
+                onSort={() => handleSort('status')}
+              >
+                Status
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                sortable
+                sortDirection={sortKey === 'lastChecked' ? sortDirection : null}
+                onSort={() => handleSort('lastChecked')}
+              >
+                Checked
+              </DataTableHeaderCell>
+              <DataTableHeaderCell className="p-0! justify-center">
+                <Button
+                  size="xs"
+                  onClick={handleMassUnfollow}
+                  disabled={massUnfollowing || checkingStatus || remainingUnfollows === 0 || selectedUsers.size === 0}
+                  className={selectedUsers.size === 0 ? 'invisible' : ''}
                 >
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleUnfollow(profile.user.pk)}
-                      disabled={isUnfollowing || massUnfollowing || checkingStatus || remainingUnfollows === 0}
-                    >
-                      {isUnfollowing ? (
-                        <Spinner className="size-4" />
-                      ) : (
-                        <>
-                          <UserMinusIcon className="size-4" />
-                          Unfollow
-                        </>
-                      )}
-                    </Button>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => handleRemoveFromList(profile.user.pk)}
-                            disabled={isUnfollowing || massUnfollowing || checkingStatus}
-                          >
-                            <XIcon className="size-4" />
-                          </Button>
-                        }
+                  {massUnfollowing ? (
+                    <>
+                      <Spinner className="size-3" />
+                      {massUnfollowProgress.current}/{massUnfollowProgress.total}
+                    </>
+                  ) : (
+                    <>
+                      <UserMinusIcon className="size-3" />
+                      Unfollow {selectedUsers.size}
+                    </>
+                  )}
+                </Button>
+              </DataTableHeaderCell>
+              <DataTableHeaderCell className="p-0! justify-center">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={handleMassRemoveFromList}
+                  disabled={massUnfollowing || checkingStatus || selectedUsers.size === 0}
+                  className={selectedUsers.size === 0 ? 'invisible' : ''}
+                >
+                  <XIcon className="size-3" />
+                </Button>
+              </DataTableHeaderCell>
+            </DataTableHeader>
+            <DataTableBody>
+              {sortedProfiles.map((profile) => {
+                const isUnfollowing = unfollowingUser === profile.user.pk;
+
+                return (
+                  <DataTableRow
+                    key={profile.user.pk}
+                    columns="40px minmax(100px, 1fr) 100px 100px 100px 100px 40px"
+                    selected={selectedUsers.has(profile.user.pk)}
+                  >
+                    <DataTableCell>
+                      <Checkbox
+                        checked={selectedUsers.has(profile.user.pk)}
+                        onCheckedChange={() => toggleSelectUser(profile.user.pk)}
+                        disabled={massUnfollowing || checkingStatus}
+                        className="cursor-pointer"
                       />
-                      <TooltipPopup container={container}>Remove from list (keep following)</TooltipPopup>
-                    </Tooltip>
-                  </div>
-                </ProfileCard>
-              );
-            })}
-          </div>
+                    </DataTableCell>
+                    <DataTableCell noPadding>
+                      <DataTableUserCell user={profile.user} />
+                    </DataTableCell>
+                    <DataTableCell>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimeAgo(profile.followedAt)}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell>
+                      <FollowBackStatus followedBack={profile.followedBack} />
+                    </DataTableCell>
+                    <DataTableCell>
+                      <span className="text-xs text-muted-foreground">
+                        {profile.lastCheckedAt ? formatTimeAgo(profile.lastCheckedAt) : '—'}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell noPadding className="flex items-center justify-center">
+                      <Button
+                        variant="secondary"
+                        size="xs"
+                        onClick={() => handleUnfollow(profile.user.pk)}
+                        disabled={isUnfollowing || massUnfollowing || checkingStatus || remainingUnfollows === 0}
+                      >
+                        {isUnfollowing ? (
+                          <Spinner className="size-3" />
+                        ) : (
+                          <>
+                            <UserMinusIcon className="size-3" />
+                            Unfollow
+                          </>
+                        )}
+                      </Button>
+                    </DataTableCell>
+                    <DataTableCell noPadding className="flex items-center justify-center">
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => handleRemoveFromList(profile.user.pk)}
+                              disabled={isUnfollowing || massUnfollowing || checkingStatus}
+                            >
+                              <XIcon className="size-3" />
+                            </Button>
+                          }
+                        />
+                        <TooltipPopup container={container}>Remove from list</TooltipPopup>
+                      </Tooltip>
+                    </DataTableCell>
+                  </DataTableRow>
+                );
+              })}
+            </DataTableBody>
+          </DataTable>
         )}
       </ScrollArea>
 
