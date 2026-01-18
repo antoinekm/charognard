@@ -18,7 +18,7 @@ export default defineBackground(() => {
         await browser.windows.update(tabs[0].windowId, { focused: true });
       }
       // Open the panel
-      await browser.tabs.sendMessage(tabs[0].id, { type: MessageType.OpenPanel });
+      await browser.tabs.sendMessage(tabs[0].id, { type: MessageType.TogglePanel });
     } else {
       // Set flag to open panel when content script loads
       await browser.storage.local.set({ openPanelOnLoad: true });

@@ -40,7 +40,7 @@ export enum MessageType {
   UnfollowUser = 'UNFOLLOW_USER',
   RunAutomation = 'RUN_AUTOMATION',
   UpdateAlarm = 'UPDATE_ALARM',
-  OpenPanel = 'OPEN_PANEL',
+  TogglePanel = 'TOGGLE_PANEL',
 }
 
 export interface BaseMessage {
@@ -69,8 +69,8 @@ export interface UpdateAlarmMessage extends BaseMessage {
   type: MessageType.UpdateAlarm;
 }
 
-export interface OpenPanelMessage extends BaseMessage {
-  type: MessageType.OpenPanel;
+export interface TogglePanelMessage extends BaseMessage {
+  type: MessageType.TogglePanel;
 }
 
 export type ExtensionMessage =
@@ -79,7 +79,7 @@ export type ExtensionMessage =
   | UnfollowUserMessage
   | RunAutomationMessage
   | UpdateAlarmMessage
-  | OpenPanelMessage;
+  | TogglePanelMessage;
 
 export interface MessageResponse<T = unknown> {
   success: boolean;

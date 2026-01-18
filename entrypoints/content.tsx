@@ -62,8 +62,8 @@ async function handleMessage(message: ExtensionMessage): Promise<MessageResponse
         }
         return { success: true, data: result };
       }
-      case MessageType.OpenPanel: {
-        document.dispatchEvent(new CustomEvent('charognard:open-panel'));
+      case MessageType.TogglePanel: {
+        document.dispatchEvent(new CustomEvent('charognard:toggle-panel'));
         return { success: true };
       }
       default:

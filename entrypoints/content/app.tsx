@@ -21,11 +21,11 @@ export function App({ container }: AppProps) {
     setIsOpen(false);
   };
 
-  // Listen for custom event to open panel (from content script)
+  // Listen for custom event to toggle panel (from content script)
   useEffect(() => {
-    const handleOpenPanel = () => setIsOpen(true);
-    document.addEventListener('charognard:open-panel', handleOpenPanel);
-    return () => document.removeEventListener('charognard:open-panel', handleOpenPanel);
+    const handleTogglePanel = () => setIsOpen((prev) => !prev);
+    document.addEventListener('charognard:toggle-panel', handleTogglePanel);
+    return () => document.removeEventListener('charognard:toggle-panel', handleTogglePanel);
   }, []);
 
   // Check if we should open panel on load (from extension icon click)
