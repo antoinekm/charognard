@@ -351,7 +351,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
           </Empty>
         ) : (
           <DataTable>
-            <DataTableHeader columns="40px minmax(100px, 1fr) 1fr 100px 100px 90px">
+            <DataTableHeader columns="40px minmax(100px, 1fr) 1fr 100px 60px 90px">
               <DataTableHeaderCell>
                 <Checkbox
                   checked={selectedUsers.size === selectableUsers.length && selectableUsers.length > 0}
@@ -395,7 +395,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                 sortDirection={sortKey === 'verified' ? sortDirection : null}
                 onSort={() => handleSort('verified')}
               >
-                Verified
+                <VerifiedBadge />
               </DataTableHeaderCell>
               <DataTableHeaderCell className="p-0! justify-center">
                 <Button
@@ -426,7 +426,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                 return (
                   <DataTableRow
                     key={suggestion.user.pk}
-                    columns="40px minmax(100px, 1fr) 1fr 100px 100px 90px"
+                    columns="40px minmax(100px, 1fr) 1fr 100px 60px 90px"
                     selected={selectedUsers.has(suggestion.user.pk)}
                   >
                     <DataTableCell>

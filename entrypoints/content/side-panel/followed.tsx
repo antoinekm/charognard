@@ -13,6 +13,7 @@ import { DataTableUserCell } from '@/components/ui/data-table/data-table-user-ce
 import { RefreshCwIcon, UserMinusIcon, HeartIcon, SearchIcon, XIcon } from 'lucide-react';
 import { ActionFooter } from '../components/ui/action-footer';
 import { FollowBackStatus } from '../components/side-panel/followed/follow-back-status';
+import { VerifiedBadge } from '../components/ui/verified-badge';
 import { FollowedActionBar } from '../components/side-panel/followed/followed-action-bar';
 import { useFollowedProfiles } from '../hooks/use-followed-profiles';
 
@@ -48,10 +49,10 @@ export function FollowedTab({ container }: FollowedTabProps) {
     loadProfiles,
   } = useFollowedProfiles();
 
-  const [sortKey, setSortKey] = useState<'username' | 'followed' | 'status' | 'lastChecked' | null>(null);
+  const [sortKey, setSortKey] = useState<'username' | 'followed' | 'status' | 'lastChecked' | 'verified' | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  const handleSort = (key: 'username' | 'followed' | 'status' | 'lastChecked') => {
+  const handleSort = (key: 'username' | 'followed' | 'status' | 'lastChecked' | 'verified') => {
     if (sortKey === key) {
       if (sortDirection === 'asc') {
         setSortDirection('desc');
@@ -90,6 +91,9 @@ export function FollowedTab({ container }: FollowedTabProps) {
         }
         case 'lastChecked':
           comparison = (a.lastCheckedAt || 0) - (b.lastCheckedAt || 0);
+          break;
+        case 'verified':
+          comparison = Number(b.user.is_verified) - Number(a.user.is_verified);
           break;
       }
 
@@ -159,7 +163,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
           </Empty>
         ) : (
           <DataTable>
-            <DataTableHeader columns="40px minmax(100px, 1fr) 100px 100px 100px 100px 40px">
+            <DataTableHeader columns="40px minmax(100px, 1fr) 60px 100px 100px 100px 100px 40px">
               <DataTableHeaderCell>
                 <Checkbox
                   checked={selectedUsers.size === filteredProfiles.length && filteredProfiles.length > 0}
@@ -181,6 +185,14 @@ export function FollowedTab({ container }: FollowedTabProps) {
                 onSort={() => handleSort('username')}
               >
                 User
+              </DataTableHeaderCell>
+              <DataTableHeaderCell
+                align="center"
+                sortable
+                sortDirection={sortKey === 'verified' ? sortDirection : null}
+                onSort={() => handleSort('verified')}
+              >
+                <VerifiedBadge />
               </DataTableHeaderCell>
               <DataTableHeaderCell
                 sortable
@@ -242,7 +254,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                 return (
                   <DataTableRow
                     key={profile.user.pk}
-                    columns="40px minmax(100px, 1fr) 100px 100px 100px 100px 40px"
+                    columns="40px minmax(100px, 1fr) 60px 100px 100px 100px 100px 40px"
                     selected={selectedUsers.has(profile.user.pk)}
                   >
                     <DataTableCell>
@@ -255,6 +267,9 @@ export function FollowedTab({ container }: FollowedTabProps) {
                     </DataTableCell>
                     <DataTableCell noPadding>
                       <DataTableUserCell user={profile.user} />
+                    </DataTableCell>
+                    <DataTableCell align="center">
+                      {profile.user.is_verified && <VerifiedBadge />}
                     </DataTableCell>
                     <DataTableCell>
                       <span className="text-xs text-muted-foreground">
