@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { ExternalLinkIcon } from 'lucide-react';
+import { ExternalLinkIcon, UserIcon } from 'lucide-react';
 
 interface DataTableUserCellUser {
   pk: string;
@@ -14,6 +14,7 @@ interface DataTableUserCellProps {
   badges?: ReactNode;
   statusSlot?: ReactNode;
   className?: string;
+  onImageError?: (userId: string) => void;
 }
 
 export function DataTableUserCell({
@@ -21,8 +22,22 @@ export function DataTableUserCell({
   badges,
   statusSlot,
   className,
+  onImageError,
 }: DataTableUserCellProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(user.profile_pic_url);
   const profileUrl = `https://www.instagram.com/${user.username}/`;
+
+  // Update image source when user prop changes (e.g., after refresh)
+  useEffect(() => {
+    setImageSrc(user.profile_pic_url);
+    setImageError(false);
+  }, [user.profile_pic_url]);
+
+  const handleImageError = () => {
+    setImageError(true);
+    onImageError?.(user.pk);
+  };
 
   return (
     <a
@@ -35,12 +50,22 @@ export function DataTableUserCell({
       )}
       data-slot="data-table-user-cell"
     >
-      <img
-        src={user.profile_pic_url}
-        alt={user.username}
-        className="size-4 rounded object-cover shrink-0"
-        data-slot="user-avatar"
-      />
+      {imageError ? (
+        <div
+          className="size-4 rounded bg-muted flex items-center justify-center shrink-0"
+          data-slot="user-avatar"
+        >
+          <UserIcon className="size-2.5 text-muted-foreground" />
+        </div>
+      ) : (
+        <img
+          src={imageSrc}
+          alt={user.username}
+          className="size-4 rounded object-cover shrink-0"
+          data-slot="user-avatar"
+          onError={handleImageError}
+        />
+      )}
 
       <div className="flex items-center gap-1.5 min-w-0 flex-1" data-slot="user-info">
         <span className="font-medium text-sm truncate" data-slot="user-username">

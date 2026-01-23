@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Spinner } from '@/components/ui/spinner';
@@ -16,6 +16,8 @@ import { FollowBackStatus } from '../components/side-panel/followed/follow-back-
 import { VerifiedBadge } from '../components/ui/verified-badge';
 import { FollowedActionBar } from '../components/side-panel/followed/followed-action-bar';
 import { useFollowedProfiles } from '../hooks/use-followed-profiles';
+import { fetchUserInfo } from '@/lib/instagram';
+import { updateProfilePicUrl } from '@/lib/storage/profiles';
 
 interface FollowedTabProps {
   container: HTMLElement;
@@ -51,6 +53,33 @@ export function FollowedTab({ container }: FollowedTabProps) {
 
   const [sortKey, setSortKey] = useState<'username' | 'followed' | 'status' | 'lastChecked' | 'verified' | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  // Track which user IDs are currently being refreshed to avoid duplicate requests
+  const [refreshingImages, setRefreshingImages] = useState<Set<string>>(new Set());
+
+  const handleImageError = useCallback(async (userId: string) => {
+    // Avoid duplicate refresh requests
+    if (refreshingImages.has(userId)) return;
+
+    setRefreshingImages(prev => new Set(prev).add(userId));
+
+    try {
+      const userInfo = await fetchUserInfo(userId);
+      if (userInfo?.user?.profile_pic_url) {
+        await updateProfilePicUrl(userId, userInfo.user.profile_pic_url);
+        // Reload profiles to get updated data
+        loadProfiles();
+      }
+    } catch {
+      // Silently fail - the fallback icon will remain visible
+    } finally {
+      setRefreshingImages(prev => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    }
+  }, [refreshingImages, loadProfiles]);
 
   const handleSort = (key: 'username' | 'followed' | 'status' | 'lastChecked' | 'verified') => {
     if (sortKey === key) {
@@ -266,7 +295,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                       />
                     </DataTableCell>
                     <DataTableCell noPadding>
-                      <DataTableUserCell user={profile.user} />
+                      <DataTableUserCell user={profile.user} onImageError={handleImageError} />
                     </DataTableCell>
                     <DataTableCell align="center">
                       {profile.user.is_verified && <VerifiedBadge />}

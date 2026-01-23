@@ -54,3 +54,11 @@ export async function clearAllFollowedProfiles(): Promise<void> {
   accountData.followedProfiles = {};
   await setAccountData(accountData);
 }
+
+export async function updateProfilePicUrl(userId: string, profilePicUrl: string): Promise<void> {
+  const accountData = await getAccountData();
+  if (accountData.followedProfiles[userId]) {
+    accountData.followedProfiles[userId].user.profile_pic_url = profilePicUrl;
+    await setAccountData(accountData);
+  }
+}
