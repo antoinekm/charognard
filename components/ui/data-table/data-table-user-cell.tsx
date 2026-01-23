@@ -71,9 +71,9 @@ export function DataTableUserCell({
         <span className="font-medium text-sm truncate" data-slot="user-username">
           {user.username}
         </span>
-        {user.full_name && (
+        {user.full_name?.trim() && (
           <span className="text-sm text-muted-foreground truncate" data-slot="user-fullname">
-            ({user.full_name})
+            ({user.full_name.trim()})
           </span>
         )}
         {badges}
