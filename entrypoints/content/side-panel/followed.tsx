@@ -192,8 +192,8 @@ export function FollowedTab({ container }: FollowedTabProps) {
           </Empty>
         ) : (
           <DataTable>
-            <DataTableHeader columns="40px minmax(100px, 1fr) 60px 100px 100px 100px 100px 40px">
-              <DataTableHeaderCell>
+            <DataTableHeader>
+              <DataTableHeaderCell align="center" className="w-10">
                 <Checkbox
                   checked={selectedUsers.size === filteredProfiles.length && filteredProfiles.length > 0}
                   indeterminate={selectedUsers.size > 0 && selectedUsers.size < filteredProfiles.length}
@@ -244,7 +244,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
               >
                 Checked
               </DataTableHeaderCell>
-              <DataTableHeaderCell className="p-0! justify-center">
+              <DataTableHeaderCell align="center" noPadding>
                 <Button
                   size="xs"
                   onClick={handleMassUnfollow}
@@ -264,7 +264,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                   )}
                 </Button>
               </DataTableHeaderCell>
-              <DataTableHeaderCell className="p-0! justify-center">
+              <DataTableHeaderCell align="center" noPadding>
                 <Button
                   variant="ghost"
                   size="icon-xs"
@@ -283,10 +283,9 @@ export function FollowedTab({ container }: FollowedTabProps) {
                 return (
                   <DataTableRow
                     key={profile.user.pk}
-                    columns="40px minmax(100px, 1fr) 60px 100px 100px 100px 100px 40px"
                     selected={selectedUsers.has(profile.user.pk)}
                   >
-                    <DataTableCell>
+                    <DataTableCell align="center">
                       <Checkbox
                         checked={selectedUsers.has(profile.user.pk)}
                         onCheckedChange={() => toggleSelectUser(profile.user.pk)}
@@ -313,7 +312,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                         {profile.lastCheckedAt ? formatTimeAgo(profile.lastCheckedAt) : '—'}
                       </span>
                     </DataTableCell>
-                    <DataTableCell noPadding className="flex items-center justify-center">
+                    <DataTableCell align="center" noPadding>
                       <Button
                         variant="secondary"
                         size="xs"
@@ -330,7 +329,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                         )}
                       </Button>
                     </DataTableCell>
-                    <DataTableCell noPadding className="flex items-center justify-center">
+                    <DataTableCell align="center" noPadding>
                       <Tooltip>
                         <TooltipTrigger
                           render={

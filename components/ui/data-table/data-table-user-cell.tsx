@@ -45,7 +45,7 @@ export function DataTableUserCell({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'relative flex items-center gap-2 min-w-0 w-full self-stretch px-3 py-2',
+        'relative flex items-center gap-2 min-w-0 w-full self-stretch py-2',
         className
       )}
       data-slot="data-table-user-cell"
@@ -82,7 +82,7 @@ export function DataTableUserCell({
 
       <span
         className={cn(
-          'absolute right-2 top-1/2 -translate-y-1/2',
+          'absolute right-0 top-1/2 -translate-y-1/2',
           'flex items-center gap-1 px-2 py-1 rounded-md',
           'text-xs font-medium',
           'bg-background border border-border shadow-sm',
