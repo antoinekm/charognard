@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { ExternalLinkIcon } from 'lucide-react';
+import { ExternalLinkIcon, UserIcon } from 'lucide-react';
 
 interface DataTableUserCellUser {
   pk: string;
@@ -14,6 +14,7 @@ interface DataTableUserCellProps {
   badges?: ReactNode;
   statusSlot?: ReactNode;
   className?: string;
+  onImageError?: (userId: string) => void;
 }
 
 export function DataTableUserCell({
@@ -21,8 +22,21 @@ export function DataTableUserCell({
   badges,
   statusSlot,
   className,
+  onImageError,
 }: DataTableUserCellProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(user.profile_pic_url);
   const profileUrl = `https://www.instagram.com/${user.username}/`;
+
+  useEffect(() => {
+    setImageSrc(user.profile_pic_url);
+    setImageError(false);
+  }, [user.profile_pic_url]);
+
+  const handleImageError = () => {
+    setImageError(true);
+    onImageError?.(user.pk);
+  };
 
   return (
     <a
@@ -30,25 +44,35 @@ export function DataTableUserCell({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'relative flex items-center gap-2 min-w-0 w-full self-stretch px-3 py-2',
+        'relative flex items-center gap-2 min-w-0 py-2',
         className
       )}
       data-slot="data-table-user-cell"
     >
-      <img
-        src={user.profile_pic_url}
-        alt={user.username}
-        className="size-4 rounded object-cover shrink-0"
-        data-slot="user-avatar"
-      />
+      {imageError ? (
+        <div
+          className="size-4 rounded bg-muted flex items-center justify-center shrink-0"
+          data-slot="user-avatar"
+        >
+          <UserIcon className="size-2.5 text-muted-foreground" />
+        </div>
+      ) : (
+        <img
+          src={imageSrc}
+          alt={user.username}
+          className="size-4 rounded object-cover shrink-0"
+          data-slot="user-avatar"
+          onError={handleImageError}
+        />
+      )}
 
       <div className="flex items-center gap-1.5 min-w-0 flex-1" data-slot="user-info">
         <span className="font-medium text-sm truncate" data-slot="user-username">
           {user.username}
         </span>
-        {user.full_name && (
+        {user.full_name?.trim() && (
           <span className="text-sm text-muted-foreground truncate" data-slot="user-fullname">
-            ({user.full_name})
+            ({user.full_name.trim()})
           </span>
         )}
         {badges}
@@ -57,7 +81,7 @@ export function DataTableUserCell({
 
       <span
         className={cn(
-          'absolute right-2 top-1/2 -translate-y-1/2',
+          'absolute right-0 top-1/2 -translate-y-1/2',
           'flex items-center gap-1 px-2 py-1 rounded-md',
           'text-xs font-medium',
           'bg-background border border-border shadow-sm',

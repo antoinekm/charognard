@@ -13,6 +13,7 @@ import {
   updateFollowedBackStatus,
 } from './storage/profiles';
 import { canPerformAction, incrementDailyActionCount } from './storage/daily-actions';
+import { loggerAsync } from './storage/logs';
 
 export interface AutomationResult {
   followedCount: number;
@@ -47,6 +48,9 @@ export async function runAutomation(): Promise<AutomationResult> {
     // Start new automation progress
     await startAutomationProgress(settings.autoFollowCount);
     progress = await getAutomationProgress();
+    await loggerAsync.info('automation_start', `Automation started (target: ${settings.autoFollowCount} follows)`);
+  } else {
+    await loggerAsync.info('automation_start', `Automation resumed (${progress.completedFollowCount}/${progress.targetFollowCount} follows done)`);
   }
 
   // Auto-unfollow first (so we free up follow slots) - skip if already done
@@ -91,6 +95,13 @@ export async function runAutomation(): Promise<AutomationResult> {
 
   // Mark as completed (this also clears the progress)
   await setLastAutomationRun();
+
+  // Log automation completion
+  if (result.errors.length > 0) {
+    await loggerAsync.warning('automation_end', `Automation completed with ${result.errors.length} error(s) - ${result.followedCount} followed, ${result.unfollowedCount} unfollowed`);
+  } else {
+    await loggerAsync.success('automation_end', `Automation completed - ${result.followedCount} followed, ${result.unfollowedCount} unfollowed`);
+  }
 
   return result;
 }

@@ -8,9 +8,9 @@ interface DataTableProps {
 
 export function DataTable({ children, className }: DataTableProps) {
   return (
-    <div className={cn('flex flex-col w-full', className)} data-slot="data-table">
+    <table className={cn('w-full border-collapse border-b border-border', className)} data-slot="data-table">
       {children}
-    </div>
+    </table>
   );
 }
 
@@ -21,8 +21,8 @@ interface DataTableBodyProps {
 
 export function DataTableBody({ children, className }: DataTableBodyProps) {
   return (
-    <div className={cn('flex flex-col', className)} data-slot="data-table-body">
+    <tbody className={className} data-slot="data-table-body">
       {children}
-    </div>
+    </tbody>
   );
 }

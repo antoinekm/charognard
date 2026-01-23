@@ -14,6 +14,7 @@ import { fetchSuggestions, followUser, unfollowUser, checkFriendshipStatus } fro
 import { addFollowedProfile, removeFollowedProfile } from '@/lib/storage/profiles';
 import { getRemainingDailyActions, incrementDailyActionCount, canPerformAction } from '@/lib/storage/daily-actions';
 import { getSettings } from '@/lib/storage/settings';
+import { logger } from '@/lib/storage/logs';
 import type { Suggestion } from '@/lib/types';
 import { toastManager } from '@/components/ui/toast';
 import { RefreshCwIcon, UserPlusIcon, UserMinusIcon, LogInIcon, UsersIcon } from 'lucide-react';
@@ -89,20 +90,22 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
     }
 
     setFollowingUser(userId);
+    const suggestion = suggestions.find((s) => s.user.pk === userId);
 
     try {
       await followUser(userId);
       await incrementDailyActionCount('follow');
-      const suggestion = suggestions.find((s) => s.user.pk === userId);
       if (suggestion) {
         await addFollowedProfile(suggestion.user);
         toastManager.add({ title: `Followed @${suggestion.user.username}`, type: 'success' });
+        await logger.success('follow', `Followed @${suggestion.user.username}`);
       }
       setFollowedUsers((prev) => new Set([...prev, userId]));
       await refreshRemainingActions();
     } catch (err) {
       console.error('Failed to follow:', err);
       toastManager.add({ title: 'Failed to follow', type: 'error' });
+      await logger.error('follow', `Failed to follow @${suggestion?.user.username ?? userId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setFollowingUser(null);
     }
@@ -115,6 +118,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
     }
 
     setFollowingUser(userId);
+    const suggestion = suggestions.find((s) => s.user.pk === userId);
 
     try {
       await unfollowUser(userId);
@@ -125,11 +129,12 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
         next.delete(userId);
         return next;
       });
-      const suggestion = suggestions.find((s) => s.user.pk === userId);
       toastManager.add({ title: `Unfollowed @${suggestion?.user.username ?? 'user'}`, type: 'success' });
+      await logger.success('unfollow', `Unfollowed @${suggestion?.user.username ?? userId}`);
     } catch (err) {
       console.error('Failed to unfollow:', err);
       toastManager.add({ title: 'Failed to unfollow', type: 'error' });
+      await logger.error('unfollow', `Failed to unfollow @${suggestion?.user.username ?? userId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setFollowingUser(null);
     }
@@ -351,8 +356,8 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
           </Empty>
         ) : (
           <DataTable>
-            <DataTableHeader columns="40px minmax(100px, 1fr) 1fr 100px 60px 90px">
-              <DataTableHeaderCell>
+            <DataTableHeader>
+              <DataTableHeaderCell align="center" className="w-10">
                 <Checkbox
                   checked={selectedUsers.size === selectableUsers.length && selectableUsers.length > 0}
                   indeterminate={selectedUsers.size > 0 && selectedUsers.size < selectableUsers.length}
@@ -397,7 +402,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
               >
                 <VerifiedBadge />
               </DataTableHeaderCell>
-              <DataTableHeaderCell className="p-0! justify-center">
+              <DataTableHeaderCell align="center" noPadding>
                 <Button
                   size="xs"
                   onClick={handleMassFollow}
@@ -426,10 +431,9 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                 return (
                   <DataTableRow
                     key={suggestion.user.pk}
-                    columns="40px minmax(100px, 1fr) 1fr 100px 60px 90px"
                     selected={selectedUsers.has(suggestion.user.pk)}
                   >
-                    <DataTableCell>
+                    <DataTableCell align="center">
                       {!isFollowed && (
                         <Checkbox
                           checked={selectedUsers.has(suggestion.user.pk)}
@@ -455,7 +459,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                     <DataTableCell align="center">
                       {suggestion.user.is_verified && <VerifiedBadge />}
                     </DataTableCell>
-                    <DataTableCell noPadding className="flex items-center justify-center">
+                    <DataTableCell align="center" noPadding>
                       <Button
                         variant={isFollowed ? 'secondary' : 'default'}
                         size="xs"

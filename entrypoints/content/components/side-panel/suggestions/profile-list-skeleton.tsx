@@ -6,38 +6,57 @@ interface ProfileListSkeletonProps {
 
 export function ProfileListSkeleton({ count = 8 }: ProfileListSkeletonProps) {
   return (
-    <div className="flex flex-col">
+    <table className="w-full border-collapse border-b border-border">
       {/* Header skeleton */}
-      <div
-        className="grid items-center border-b border-border bg-muted/30 px-3 py-2.5"
-        style={{ gridTemplateColumns: '40px minmax(100px, 1fr) 1fr 100px 100px 90px' }}
-      >
-        <Skeleton className="size-4 rounded" />
-        <Skeleton className="h-3 w-12" />
-        <Skeleton className="h-3 w-14" />
-        <Skeleton className="h-3 w-12 mx-auto" />
-        <Skeleton className="h-3 w-12 mx-auto" />
-        <div />
-      </div>
+      <thead>
+        <tr className="border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <th className="w-10 px-3 py-2.5 border-r border-border/30">
+            <Skeleton className="size-4 rounded mx-auto" />
+          </th>
+          <th className="px-3 py-2.5 border-r border-border/30 text-left">
+            <Skeleton className="h-3 w-12" />
+          </th>
+          <th className="px-3 py-2.5 border-r border-border/30 text-left">
+            <Skeleton className="h-3 w-14" />
+          </th>
+          <th className="px-3 py-2.5 border-r border-border/30 text-center">
+            <Skeleton className="h-3 w-12 mx-auto" />
+          </th>
+          <th className="px-3 py-2.5 border-r border-border/30 text-center">
+            <Skeleton className="h-3 w-12 mx-auto" />
+          </th>
+          <th className="px-3 py-2.5" />
+        </tr>
+      </thead>
 
       {/* Rows skeleton */}
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="grid items-center border-b border-border/50 px-3 py-2"
-          style={{ gridTemplateColumns: '40px minmax(100px, 1fr) 1fr 100px 100px 90px' }}
-        >
-          <Skeleton className="size-4 rounded" />
-          <div className="flex items-center gap-2">
-            <Skeleton className="size-4 rounded" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-4 w-10 mx-auto" />
-          <Skeleton className="size-4 rounded-full mx-auto" />
-          <Skeleton className="h-8 w-16 rounded-md" />
-        </div>
-      ))}
-    </div>
+      <tbody>
+        {Array.from({ length: count }).map((_, i) => (
+          <tr key={i} className="border-b border-border/50">
+            <td className="px-3 py-2 border-r border-border/30 text-center">
+              <Skeleton className="size-4 rounded mx-auto" />
+            </td>
+            <td className="px-3 py-2 border-r border-border/30">
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-4 rounded" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </td>
+            <td className="px-3 py-2 border-r border-border/30">
+              <Skeleton className="h-3 w-32" />
+            </td>
+            <td className="px-3 py-2 border-r border-border/30 text-center">
+              <Skeleton className="h-4 w-10 mx-auto" />
+            </td>
+            <td className="px-3 py-2 border-r border-border/30 text-center">
+              <Skeleton className="size-4 rounded-full mx-auto" />
+            </td>
+            <td className="px-3 py-2">
+              <Skeleton className="h-8 w-16 rounded-md" />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

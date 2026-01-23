@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTab, TabsPanel } from '@/components/ui/tabs';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
-import { XIcon, ListIcon, UsersIcon, HeartIcon, SettingsIcon, LogInIcon, RefreshCwIcon } from 'lucide-react';
+import { XIcon, ListIcon, UsersIcon, HeartIcon, SettingsIcon, LogInIcon, RefreshCwIcon, HistoryIcon } from 'lucide-react';
 import { useAuth } from '../hooks/use-auth';
 import APP from '@/constants/app';
 import { ListsTab } from './lists';
 import { SuggestionsTab } from './suggestions';
 import { FollowedTab } from './followed';
 import { SettingsTab } from './settings';
+import { HistoryTab } from './history';
 
 interface SidePanelProps {
   isOpen: boolean;
@@ -60,6 +61,10 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
             <TabsTab value="settings">
               <SettingsIcon className="size-4" />
               Settings
+            </TabsTab>
+            <TabsTab value="history">
+              <HistoryIcon className="size-4" />
+              History
             </TabsTab>
           </TabsList>
         </div>
@@ -181,6 +186,36 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
             </Empty>
           ) : (
             <SettingsTab container={container} />
+          )}
+        </TabsPanel>
+
+        <TabsPanel value="history" className="flex-1 flex flex-col min-h-0">
+          {isNotLoggedIn ? (
+            <Empty className="flex-1 border-0">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <LogInIcon />
+                </EmptyMedia>
+                <EmptyTitle>Not logged in</EmptyTitle>
+                <EmptyDescription>
+                  Please log in to Instagram to view history.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => (window.location.href = 'https://www.instagram.com/accounts/login/')}>
+                    <LogInIcon />
+                    Log in
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={checkAuth}>
+                    <RefreshCwIcon />
+                    Refresh
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
+          ) : (
+            <HistoryTab />
           )}
         </TabsPanel>
       </Tabs>

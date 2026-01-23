@@ -1,3 +1,4 @@
+import merge from 'lodash.merge';
 import type {
   FollowedProfile,
   DailyActions,
@@ -5,6 +6,7 @@ import type {
   AutomationSettings,
   ProspectList,
   ProspectListUser,
+  ActionLog,
 } from '@/lib/types';
 import { getCurrentUserId, getCurrentUserIdAsync } from '@/lib/instagram';
 
@@ -15,6 +17,7 @@ export interface AccountData {
   automation: AutomationSettings;
   lists?: Record<string, ProspectList>;
   listUsers?: Record<string, Record<string, ProspectListUser>>;
+  actionLogs: ActionLog[];
 }
 
 interface StorageData {
@@ -72,6 +75,7 @@ export function getDefaultAccountData(): AccountData {
       skipFollowers: DEFAULT_SKIP_FOLLOWERS,
     },
     automation: { ...DEFAULT_AUTOMATION },
+    actionLogs: [],
   };
 }
 
@@ -108,6 +112,7 @@ export async function getStorageData(): Promise<StorageData> {
           : undefined,
         settings: migratedData.settings,
         automation: migratedData.automation,
+        actionLogs: [],
       };
     }
     await setStorageData(migratedData);
@@ -243,4 +248,25 @@ export async function setAccountDataAsync(accountData: AccountData): Promise<voi
   const accountId = await getCurrentAccountIdAsync();
   data.accounts[accountId] = accountData;
   await setStorageData(data);
+}
+
+// Export all storage data as JSON string
+export async function exportAllData(): Promise<string> {
+  const data = await getStorageData();
+  return JSON.stringify(data, null, 2);
+}
+
+// Import data from JSON string
+export async function importAllData(jsonString: string): Promise<void> {
+  const importedData = JSON.parse(jsonString);
+
+  // Validate basic structure
+  if (!importedData || typeof importedData !== 'object') {
+    throw new Error('Invalid data format');
+  }
+
+  // Deep merge with defaults to ensure all required fields exist
+  const mergedData: StorageData = merge(getDefaultStorageData(), importedData);
+
+  await setStorageData(mergedData);
 }

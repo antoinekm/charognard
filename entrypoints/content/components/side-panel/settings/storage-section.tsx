@@ -1,15 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { Progress, ProgressTrack, ProgressIndicator } from '@/components/ui/progress';
-import { DatabaseIcon, UsersIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toastManager } from '@/components/ui/toast';
+import { DatabaseIcon, UsersIcon, DownloadIcon, UploadIcon } from 'lucide-react';
 import type { StorageUsage } from '@/lib/types';
 import { getStorageUsage, formatBytes } from '@/lib/storage/usage';
+import { exportAllData, importAllData } from '@/lib/storage';
+import { logger } from '@/lib/storage/logs';
 
 export function StorageSection() {
   const [usage, setUsage] = useState<StorageUsage | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshUsage = () => {
+    getStorageUsage().then(setUsage);
+  };
 
   useEffect(() => {
-    getStorageUsage().then(setUsage);
+    refreshUsage();
   }, []);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const data = await exportAllData();
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `charognard-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toastManager.add({ title: 'Data exported successfully', type: 'success' });
+      await logger.success('export', 'Data exported successfully');
+    } catch (err) {
+      console.error('Failed to export data:', err);
+      toastManager.add({ title: 'Failed to export data', type: 'error' });
+      await logger.error('export', `Failed to export data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      await importAllData(text);
+      refreshUsage();
+      toastManager.add({ title: 'Data imported successfully', type: 'success' });
+      await logger.success('import', `Data imported from ${file.name}`);
+    } catch (err) {
+      console.error('Failed to import data:', err);
+      toastManager.add({ title: 'Failed to import data. Invalid file format.', type: 'error' });
+      await logger.error('import', `Failed to import data: ${err instanceof Error ? err.message : 'Invalid file format'}`);
+    } finally {
+      setImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   if (!usage) {
     return null;
@@ -54,6 +117,39 @@ export function StorageSection() {
             Storage is getting full. Consider unfollowing old profiles to free up space.
           </p>
         )}
+
+        <div className="flex gap-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={handleExport}
+            disabled={exporting || importing}
+          >
+            <DownloadIcon className="size-4" />
+            {exporting ? 'Exporting...' : 'Export'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={handleImportClick}
+            disabled={exporting || importing}
+          >
+            <UploadIcon className="size-4" />
+            {importing ? 'Importing...' : 'Import'}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Export or import all data to transfer between environments.
+        </p>
       </div>
     </div>
   );
