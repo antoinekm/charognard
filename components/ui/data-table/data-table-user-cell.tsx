@@ -28,7 +28,6 @@ export function DataTableUserCell({
   const [imageSrc, setImageSrc] = useState(user.profile_pic_url);
   const profileUrl = `https://www.instagram.com/${user.username}/`;
 
-  // Update image source when user prop changes (e.g., after refresh)
   useEffect(() => {
     setImageSrc(user.profile_pic_url);
     setImageError(false);
@@ -45,7 +44,7 @@ export function DataTableUserCell({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'relative flex items-center gap-2 min-w-0 w-full self-stretch py-2',
+        'relative flex items-center gap-2 min-w-0 py-2',
         className
       )}
       data-slot="data-table-user-cell"
