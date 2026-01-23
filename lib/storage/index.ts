@@ -1,3 +1,4 @@
+import merge from 'lodash.merge';
 import type {
   FollowedProfile,
   DailyActions,
@@ -239,4 +240,25 @@ export async function setAccountDataAsync(accountData: AccountData): Promise<voi
   const accountId = await getCurrentAccountIdAsync();
   data.accounts[accountId] = accountData;
   await setStorageData(data);
+}
+
+// Export all storage data as JSON string
+export async function exportAllData(): Promise<string> {
+  const data = await getStorageData();
+  return JSON.stringify(data, null, 2);
+}
+
+// Import data from JSON string
+export async function importAllData(jsonString: string): Promise<void> {
+  const importedData = JSON.parse(jsonString);
+
+  // Validate basic structure
+  if (!importedData || typeof importedData !== 'object') {
+    throw new Error('Invalid data format');
+  }
+
+  // Deep merge with defaults to ensure all required fields exist
+  const mergedData: StorageData = merge(getDefaultStorageData(), importedData);
+
+  await setStorageData(mergedData);
 }
