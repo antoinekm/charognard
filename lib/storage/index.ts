@@ -4,6 +4,7 @@ import type {
   DailyActions,
   UserSettings,
   AutomationSettings,
+  ActionLog,
 } from '@/lib/types';
 import { getCurrentUserId, getCurrentUserIdAsync } from '@/lib/instagram';
 
@@ -12,6 +13,7 @@ export interface AccountData {
   dailyActions?: DailyActions;
   settings: UserSettings;
   automation: AutomationSettings;
+  actionLogs: ActionLog[];
 }
 
 interface StorageData {
@@ -69,6 +71,7 @@ export function getDefaultAccountData(): AccountData {
       skipFollowers: DEFAULT_SKIP_FOLLOWERS,
     },
     automation: { ...DEFAULT_AUTOMATION },
+    actionLogs: [],
   };
 }
 
