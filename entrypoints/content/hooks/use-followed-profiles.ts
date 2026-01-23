@@ -4,6 +4,7 @@ import { checkFriendshipStatus, unfollowUser } from '@/lib/instagram';
 import { getFollowedProfiles, removeFollowedProfile, updateFollowedBackStatus } from '@/lib/storage/profiles';
 import { getRemainingDailyActions, incrementDailyActionCount, canPerformAction } from '@/lib/storage/daily-actions';
 import { getSettings } from '@/lib/storage/settings';
+import { logger } from '@/lib/storage/logs';
 import { toastManager } from '@/components/ui/toast';
 
 export function useFollowedProfiles() {
@@ -89,9 +90,11 @@ export function useFollowedProfiles() {
       });
       await refreshRemainingActions();
       toastManager.add({ title: `Unfollowed @${profile?.user.username ?? 'user'}`, type: 'success' });
+      await logger.success('unfollow', `Unfollowed @${profile?.user.username ?? userId}`);
     } catch (err) {
       console.error('Failed to unfollow:', err);
       toastManager.add({ title: 'Failed to unfollow', type: 'error' });
+      await logger.error('unfollow', `Failed to unfollow @${profile?.user.username ?? userId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setUnfollowingUser(null);
     }
@@ -147,6 +150,9 @@ export function useFollowedProfiles() {
     setMassUnfollowing(true);
     setMassUnfollowProgress({ current: 0, total: usersToUnfollow.length });
 
+    let successCount = 0;
+    let errorCount = 0;
+
     for (let i = 0; i < usersToUnfollow.length; i++) {
       if (!(await canPerformAction('unfollow'))) {
         console.error('Daily unfollow limit reached, stopping mass unfollow');
@@ -167,8 +173,12 @@ export function useFollowedProfiles() {
           return next;
         });
         setRemainingUnfollows((prev) => Math.max(0, prev - 1));
+        successCount++;
+        await logger.success('unfollow', `Unfollowed @${profile.user.username}`);
       } catch (err) {
         console.error('Failed to unfollow:', profile.user.username, err);
+        errorCount++;
+        await logger.error('unfollow', `Failed to unfollow @${profile.user.username}: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
 
       if (i < usersToUnfollow.length - 1) {

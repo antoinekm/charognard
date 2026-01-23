@@ -6,6 +6,7 @@ import { DatabaseIcon, UsersIcon, DownloadIcon, UploadIcon } from 'lucide-react'
 import type { StorageUsage } from '@/lib/types';
 import { getStorageUsage, formatBytes } from '@/lib/storage/usage';
 import { exportAllData, importAllData } from '@/lib/storage';
+import { logger } from '@/lib/storage/logs';
 
 export function StorageSection() {
   const [usage, setUsage] = useState<StorageUsage | null>(null);
@@ -35,9 +36,11 @@ export function StorageSection() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toastManager.add({ title: 'Data exported successfully', type: 'success' });
+      await logger.success('export', 'Data exported successfully');
     } catch (err) {
       console.error('Failed to export data:', err);
       toastManager.add({ title: 'Failed to export data', type: 'error' });
+      await logger.error('export', `Failed to export data: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setExporting(false);
     }
@@ -57,9 +60,11 @@ export function StorageSection() {
       await importAllData(text);
       refreshUsage();
       toastManager.add({ title: 'Data imported successfully', type: 'success' });
+      await logger.success('import', `Data imported from ${file.name}`);
     } catch (err) {
       console.error('Failed to import data:', err);
       toastManager.add({ title: 'Failed to import data. Invalid file format.', type: 'error' });
+      await logger.error('import', `Failed to import data: ${err instanceof Error ? err.message : 'Invalid file format'}`);
     } finally {
       setImporting(false);
       // Reset file input
