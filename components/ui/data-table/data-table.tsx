@@ -8,7 +8,7 @@ interface DataTableProps {
 
 export function DataTable({ children, className }: DataTableProps) {
   return (
-    <table className={cn('w-full border-collapse', className)} data-slot="data-table">
+    <table className={cn('w-full border-collapse border-b border-border', className)} data-slot="data-table">
       {children}
     </table>
   );
