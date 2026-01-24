@@ -376,6 +376,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                 sortable
                 sortDirection={sortKey === 'username' ? sortDirection : null}
                 onSort={() => handleSort('username')}
+                className="max-w-50"
               >
                 User
               </DataTableHeaderCell>
@@ -383,6 +384,7 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                 sortable
                 sortDirection={sortKey === 'reason' ? sortDirection : null}
                 onSort={() => handleSort('reason')}
+                className="max-w-40"
               >
                 Reason
               </DataTableHeaderCell>
@@ -443,11 +445,11 @@ export function SuggestionsTab({ container }: SuggestionsTabProps) {
                         />
                       )}
                     </DataTableCell>
-                    <DataTableCell noPadding>
+                    <DataTableCell noPadding className="max-w-50">
                       <DataTableUserCell user={suggestion.user} />
                     </DataTableCell>
-                    <DataTableCell>
-                      <span className="text-sm text-muted-foreground truncate">
+                    <DataTableCell className="max-w-40">
+                      <span className="text-sm text-muted-foreground truncate block">
                         {suggestion.social_context || '—'}
                       </span>
                     </DataTableCell>
