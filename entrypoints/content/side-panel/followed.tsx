@@ -212,6 +212,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                 sortable
                 sortDirection={sortKey === 'username' ? sortDirection : null}
                 onSort={() => handleSort('username')}
+                className="max-w-50"
               >
                 User
               </DataTableHeaderCell>
@@ -293,7 +294,7 @@ export function FollowedTab({ container }: FollowedTabProps) {
                         className="cursor-pointer"
                       />
                     </DataTableCell>
-                    <DataTableCell noPadding>
+                    <DataTableCell noPadding className="max-w-50">
                       <DataTableUserCell user={profile.user} onImageError={handleImageError} />
                     </DataTableCell>
                     <DataTableCell align="center">
