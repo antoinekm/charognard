@@ -8,7 +8,9 @@ export default defineBackground(() => {
   setupAlarm();
 
   // Handle extension icon click
-  browser.action.onClicked.addListener(async () => {
+  // Use browserAction for MV2 (Firefox) or action for MV3 (Chrome)
+  const actionApi = browser.action ?? browser.browserAction;
+  actionApi.onClicked.addListener(async () => {
     const tabs = await browser.tabs.query({ url: '*://*.instagram.com/*' });
 
     if (tabs.length > 0 && tabs[0].id) {
