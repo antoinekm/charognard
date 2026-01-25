@@ -97,10 +97,15 @@ export async function runAutomation(): Promise<AutomationResult> {
   await setLastAutomationRun();
 
   // Log automation completion
+  const baseMessage = `${result.followedCount} followed, ${result.unfollowedCount} unfollowed`;
   if (result.errors.length > 0) {
-    await loggerAsync.warning('automation_end', `Automation completed with ${result.errors.length} error(s) - ${result.followedCount} followed, ${result.unfollowedCount} unfollowed`);
+    // Include first error/reason for context (truncate if too long)
+    const reason = result.errors[0].length > 60
+      ? result.errors[0].substring(0, 57) + '...'
+      : result.errors[0];
+    await loggerAsync.warning('automation_end', `Automation completed - ${baseMessage} (${reason})`);
   } else {
-    await loggerAsync.success('automation_end', `Automation completed - ${result.followedCount} followed, ${result.unfollowedCount} unfollowed`);
+    await loggerAsync.success('automation_end', `Automation completed - ${baseMessage}`);
   }
 
   return result;
@@ -138,6 +143,11 @@ async function runAutoFollow(
 
         if (!(await canPerformAction('follow'))) {
           // Daily limit reached, exit completely
+          if (count > 0) {
+            errors.push(`Daily follow limit reached after ${count} follows`);
+          } else {
+            errors.push('Daily follow limit already reached');
+          }
           return { count, errors };
         }
 
@@ -174,6 +184,11 @@ async function runAutoFollow(
     }
   }
 
+  // Log if we stopped due to empty batches
+  if (consecutiveEmptyBatches >= maxEmptyBatches && count < maxCount) {
+    errors.push(`No more public suggestions available (followed ${count}/${maxCount})`);
+  }
+
   return { count, errors };
 }
 
@@ -193,6 +208,11 @@ async function runAutoUnfollow(
 
     for (const profile of oldProfiles) {
       if (!(await canPerformAction('unfollow'))) {
+        if (count > 0) {
+          errors.push(`Daily unfollow limit reached after ${count} unfollows`);
+        } else {
+          errors.push('Daily unfollow limit already reached');
+        }
         break;
       }
 
