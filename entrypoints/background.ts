@@ -2,6 +2,7 @@ import { MessageType, type ExtensionMessage, type MessageResponse, type Automati
 import { getAutomationSettings, getAutomationProgress } from '@/lib/storage/automation';
 
 const ALARM_NAME = 'ig-automation';
+let isAutomationRunning = false;
 
 export default defineBackground(() => {
   // Set up alarm on startup
@@ -141,11 +142,19 @@ function calculateNextRunTime(settings: AutomationSettings): number {
 }
 
 async function runAutomation(): Promise<void> {
+  // Prevent parallel executions
+  if (isAutomationRunning) {
+    console.log('[Charognard] Automation already running, skipping');
+    return;
+  }
+
   const settings = await getAutomationSettings();
 
   if (!settings.enabled) {
     return;
   }
+
+  isAutomationRunning = true;
 
   try {
     // Find or create Instagram tab
@@ -163,7 +172,7 @@ async function runAutomation(): Promise<void> {
       return;
     }
 
-    // Send message to content script to run automation
+    // Send message to content script and WAIT for completion
     await browser.tabs.sendMessage(igTab.id, { type: MessageType.RunAutomation });
 
     // Reschedule for next run (handles both catch-up and weekly cases)
@@ -172,6 +181,8 @@ async function runAutomation(): Promise<void> {
     console.error('[Charognard] Automation failed:', error);
     // Still reschedule even on error to not break future runs
     await setupAlarm();
+  } finally {
+    isAutomationRunning = false;
   }
 }
 
