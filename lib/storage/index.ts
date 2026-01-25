@@ -108,6 +108,7 @@ export async function getStorageData(): Promise<StorageData> {
           : undefined,
         settings: migratedData.settings,
         automation: migratedData.automation,
+        actionLogs: [],
       };
     }
     await setStorageData(migratedData);
