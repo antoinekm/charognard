@@ -39,30 +39,40 @@ Popup → Background → Content Script → Instagram API
 
 ### Content Script Structure
 
-The content script renders a floating button + side panel with three tabs:
+The content script renders a floating button + side panel with four tabs:
 - **Suggestions** - Discover and mass-follow new accounts
 - **Followed** - Track who you followed and check follow-back status
 - **Settings** - Configure daily limits and automation
+- **History** - View action logs (follows, unfollows, automation events)
 
 Key patterns:
-- `entrypoints/content/contexts/` - React contexts (AuthContext, HideButtonContext)
-- `entrypoints/content/hooks/` - Custom hooks (useAuth, useHideButton, useSessionStorage)
-- `entrypoints/content/side-panel/` - Tab components (suggestions, followed, settings)
+- `entrypoints/content/contexts/` - React contexts (AuthContext, HideButtonContext, ProductTourContext)
+- `entrypoints/content/hooks/` - Custom hooks (useAuth, useHideButton, useSessionStorage, useProductTour)
+- `entrypoints/content/side-panel/` - Tab components (suggestions, followed, settings, history)
 - `entrypoints/content/components/` - Reusable UI components for content script
 
 ### Storage Architecture
 
-Multi-account support via `lib/storage.ts`:
+Multi-account support via `lib/storage/`:
 - Data scoped per Instagram user ID
-- Tracks: followed profiles, daily action counts, automation settings
+- Tracks: followed profiles, daily action counts, automation settings, action logs
 - Daily limits reset at midnight (follow/unfollow separately)
+- Storage functions split by domain: `profiles.ts`, `settings.ts`, `automation.ts`, `logs.ts`, etc.
+
+### Types Organization
+
+Types are organized in `types/` folder:
+- `types/instagram.ts` - Instagram API types (InstagramUser, Suggestion, FriendshipStatus)
+- `types/messages.ts` - Extension message types for background/content communication
+- `types/storage.ts` - Storage-related types (FollowedProfile, AutomationSettings, etc.)
+- `types/logs.ts` - Action log types
+- `types/product-tour.ts` - Product tour/onboarding types
 
 ## Key Files
 
 - `constants/app.ts` - Centralized app constants (name, developer info) - use `APP.NAME`, `APP.SHORT_NAME`, etc.
-- `lib/types.ts` - Shared TypeScript types for API responses and messages
 - `lib/instagram.ts` - Instagram API functions (fetchSuggestions, followUser, unfollowUser, checkFollowStatus)
-- `lib/storage.ts` - Browser storage with multi-account support
+- `lib/storage/index.ts` - Main storage exports and defaults
 - `lib/automation.ts` - Background automation logic
 - `components/ui/` - coss/ui components (Button, Avatar, ScrollArea, etc.)
 - `components/icons/` - Custom SVG icons (CharognardIcon)
