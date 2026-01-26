@@ -62,6 +62,7 @@ export function DataTableUserCell({
           alt={user.username}
           className="size-4 rounded object-cover shrink-0"
           data-slot="user-avatar"
+          loading="lazy"
           onError={handleImageError}
         />
       )}

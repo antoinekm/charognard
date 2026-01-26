@@ -40,6 +40,16 @@ export function useFollowedProfiles() {
     }
   }, [refreshRemainingActions]);
 
+  const updateProfileImage = useCallback((userId: string, newImageUrl: string) => {
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.user.pk === userId
+          ? { ...p, user: { ...p.user, profile_pic_url: newImageUrl } }
+          : p
+      )
+    );
+  }, []);
+
   const checkAllStatus = useCallback(async () => {
     if (profiles.length === 0) return;
 
@@ -256,5 +266,6 @@ export function useFollowedProfiles() {
 
     // Refresh
     loadProfiles,
+    updateProfileImage,
   };
 }

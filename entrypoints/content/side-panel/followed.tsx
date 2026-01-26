@@ -16,8 +16,7 @@ import { FollowBackStatus } from '../components/side-panel/followed/follow-back-
 import { VerifiedBadge } from '../components/ui/verified-badge';
 import { FollowedActionBar } from '../components/side-panel/followed/followed-action-bar';
 import { useFollowedProfiles } from '../hooks/use-followed-profiles';
-import { fetchUserInfo } from '@/lib/instagram';
-import { updateProfilePicUrl } from '@/lib/storage/profiles';
+import { imageRefreshQueue } from '@/lib/image-refresh-queue';
 
 interface FollowedTabProps {
   container: HTMLElement;
@@ -49,37 +48,19 @@ export function FollowedTab({ container }: FollowedTabProps) {
     filterNotFollowingBack,
     setFilterNotFollowingBack,
     loadProfiles,
+    updateProfileImage,
   } = useFollowedProfiles();
 
   const [sortKey, setSortKey] = useState<'username' | 'followed' | 'status' | 'lastChecked' | 'verified' | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  // Track which user IDs are currently being refreshed to avoid duplicate requests
-  const [refreshingImages, setRefreshingImages] = useState<Set<string>>(new Set());
-
-  const handleImageError = useCallback(async (userId: string) => {
-    // Avoid duplicate refresh requests
-    if (refreshingImages.has(userId)) return;
-
-    setRefreshingImages(prev => new Set(prev).add(userId));
-
-    try {
-      const userInfo = await fetchUserInfo(userId);
-      if (userInfo?.user?.profile_pic_url) {
-        await updateProfilePicUrl(userId, userInfo.user.profile_pic_url);
-        // Reload profiles to get updated data
-        loadProfiles();
-      }
-    } catch {
-      // Silently fail - the fallback icon will remain visible
-    } finally {
-      setRefreshingImages(prev => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }
-  }, [refreshingImages, loadProfiles]);
+  const handleImageError = useCallback((userId: string) => {
+    // Add to queue - it handles deduplication and rate limiting
+    imageRefreshQueue.add({
+      userId,
+      onSuccess: (newUrl) => updateProfileImage(userId, newUrl),
+    });
+  }, [updateProfileImage]);
 
   const handleSort = (key: 'username' | 'followed' | 'status' | 'lastChecked' | 'verified') => {
     if (sortKey === key) {
