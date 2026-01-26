@@ -12,10 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from './hooks/use-auth';
+import { useAuth } from '../../hooks/use-auth';
 import { followUser, unfollowUser, fetchUserInfo, fetchUserMedia, likePost, unlikePost } from '@/lib/instagram';
-import { hasCompletedOnboarding, setOnboardingCompleted } from '@/lib/storage/onboarding';
-import type { InstagramUser } from '@/lib/types';
+import { hasCompletedOnboarding } from '@/lib/storage/onboarding';
+import { useProductTour } from '../../hooks/use-product-tour';
+import type { InstagramUser } from '@/types/instagram';
 import { GithubIcon, HeartIcon, UserMinusIcon, HeartOffIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import APP from '@/constants/app';
 
@@ -25,6 +26,7 @@ interface OnboardingModalProps {
 
 export function OnboardingModal({ container }: OnboardingModalProps) {
   const { isLoggedIn } = useAuth();
+  const { startTour } = useProductTour();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [developerProfile, setDeveloperProfile] = useState<InstagramUser | null>(null);
@@ -113,9 +115,15 @@ export function OnboardingModal({ container }: OnboardingModalProps) {
     }
   };
 
-  const handleComplete = async () => {
-    await setOnboardingCompleted(hasFollowed);
+  const handleComplete = () => {
     setOpen(false);
+
+    // Open the panel and start the product tour
+    document.dispatchEvent(new CustomEvent('charognard:open-panel'));
+    // Small delay to let the panel open and render
+    setTimeout(() => {
+      startTour('main', { developerFollowed: hasFollowed });
+    }, 400);
   };
 
   return (
