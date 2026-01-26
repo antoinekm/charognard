@@ -29,7 +29,7 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+      <div id="onboarding-panel-header" className="flex items-center justify-between p-4 border-b border-border shrink-0">
         <h2 className="font-heading font-semibold text-lg">
           {APP.NAME}
           <span className="ml-1.5 text-xs font-normal text-muted-foreground">
@@ -45,19 +45,19 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
         <div className="px-4 pt-2 shrink-0">
           <TabsList>
-            <TabsTab value="suggestions">
+            <TabsTab id="onboarding-tab-suggestions" value="suggestions">
               <UsersIcon className="size-4" />
               Suggestions
             </TabsTab>
-            <TabsTab value="followed">
+            <TabsTab id="onboarding-tab-followed" value="followed">
               <HeartIcon className="size-4" />
               Followed
             </TabsTab>
-            <TabsTab value="settings">
+            <TabsTab id="onboarding-tab-settings" value="settings">
               <SettingsIcon className="size-4" />
               Settings
             </TabsTab>
-            <TabsTab value="history">
+            <TabsTab id="onboarding-tab-history" value="history">
               <HistoryIcon className="size-4" />
               History
             </TabsTab>
