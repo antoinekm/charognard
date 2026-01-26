@@ -15,7 +15,7 @@ import { addFollowedProfile, removeFollowedProfile } from '@/lib/storage/profile
 import { getRemainingDailyActions, incrementDailyActionCount, canPerformAction } from '@/lib/storage/daily-actions';
 import { getSettings } from '@/lib/storage/settings';
 import { logger } from '@/lib/storage/logs';
-import type { Suggestion } from '@/lib/types';
+import type { Suggestion } from '@/types/instagram';
 import { toastManager } from '@/components/ui/toast';
 import { RefreshCwIcon, UserPlusIcon, UserMinusIcon, LogInIcon, UsersIcon } from 'lucide-react';
 import { VerifiedBadge } from '../components/ui/verified-badge';

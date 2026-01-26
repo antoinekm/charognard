@@ -1,4 +1,5 @@
-import { MessageType, type ExtensionMessage, type MessageResponse, type AutomationSettings } from '@/lib/types';
+import { MessageType, type ExtensionMessage, type MessageResponse } from '@/types/messages';
+import type { AutomationSettings } from '@/types/storage';
 import { getAutomationSettings, getAutomationProgress } from '@/lib/storage/automation';
 
 const ALARM_NAME = 'ig-automation';

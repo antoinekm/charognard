@@ -23,7 +23,7 @@ import {
   AlertTriangleIcon,
   InfoIcon,
 } from 'lucide-react';
-import type { ActionLog, LogActionType, LogType } from '@/lib/types';
+import type { ActionLog, LogActionType, LogType } from '@/types/logs';
 import { getActionLogs, clearActionLogs } from '@/lib/storage/logs';
 
 export function HistoryTab() {

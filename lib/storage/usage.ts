@@ -1,4 +1,4 @@
-import type { StorageUsage } from '@/lib/types';
+import type { StorageUsage } from '@/types/storage';
 import { STORAGE_KEY, getStorageData } from '.';
 
 const STORAGE_LIMIT_BYTES = 10 * 1024 * 1024; // 10 MB

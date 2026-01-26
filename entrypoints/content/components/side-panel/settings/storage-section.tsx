@@ -3,7 +3,7 @@ import { Progress, ProgressTrack, ProgressIndicator } from '@/components/ui/prog
 import { Button } from '@/components/ui/button';
 import { toastManager } from '@/components/ui/toast';
 import { DatabaseIcon, UsersIcon, DownloadIcon, UploadIcon } from 'lucide-react';
-import type { StorageUsage } from '@/lib/types';
+import type { StorageUsage } from '@/types/storage';
 import { getStorageUsage, formatBytes } from '@/lib/storage/usage';
 import { exportAllData, importAllData } from '@/lib/storage';
 import { logger } from '@/lib/storage/logs';

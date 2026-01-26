@@ -1,4 +1,5 @@
-import type { InstagramUser, FollowedProfile } from '@/lib/types';
+import type { InstagramUser } from '@/types/instagram';
+import type { FollowedProfile } from '@/types/storage';
 import { getAccountData, setAccountData } from '.';
 
 export async function addFollowedProfile(user: InstagramUser): Promise<void> {

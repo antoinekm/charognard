@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { FollowedProfile } from '@/lib/types';
+import type { FollowedProfile } from '@/types/storage';
 import { checkFriendshipStatus, unfollowUser } from '@/lib/instagram';
 import { getFollowedProfiles, removeFollowedProfile, updateFollowedBackStatus } from '@/lib/storage/profiles';
 import { getRemainingDailyActions, incrementDailyActionCount, canPerformAction } from '@/lib/storage/daily-actions';
@@ -17,8 +17,8 @@ export function useFollowedProfiles() {
   const [massUnfollowing, setMassUnfollowing] = useState(false);
   const [massUnfollowProgress, setMassUnfollowProgress] = useState({ current: 0, total: 0 });
   const [filterNotFollowingBack, setFilterNotFollowingBack] = useState(false);
-  const [remainingUnfollows, setRemainingUnfollows] = useState<number>(150);
-  const [unfollowLimit, setUnfollowLimit] = useState<number>(150);
+  const [remainingUnfollows, setRemainingUnfollows] = useState<number>(100);
+  const [unfollowLimit, setUnfollowLimit] = useState<number>(100);
 
   const refreshRemainingActions = useCallback(async () => {
     const remaining = await getRemainingDailyActions('unfollow');

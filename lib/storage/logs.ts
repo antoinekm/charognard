@@ -1,4 +1,4 @@
-import type { ActionLog, LogActionType, LogType } from '@/lib/types';
+import type { ActionLog, LogActionType, LogType } from '@/types/logs';
 import { getAccountData, setAccountData, getAccountDataAsync, setAccountDataAsync } from '.';
 
 export const MAX_LOG_ENTRIES = 500;

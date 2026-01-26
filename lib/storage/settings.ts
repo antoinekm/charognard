@@ -1,4 +1,4 @@
-import type { UserSettings } from '@/lib/types';
+import type { UserSettings } from '@/types/storage';
 import { getAccountData, setAccountData } from '.';
 
 export async function getSettings(): Promise<UserSettings> {

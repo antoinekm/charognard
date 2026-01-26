@@ -1,4 +1,4 @@
-import type { OnboardingData } from '@/lib/types';
+import type { OnboardingData } from '@/types/storage';
 import { getStorageData, setStorageData } from '.';
 
 export async function getOnboardingData(): Promise<OnboardingData> {

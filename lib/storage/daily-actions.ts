@@ -1,4 +1,4 @@
-import type { ActionType } from '@/lib/types';
+import type { ActionType } from '@/types/storage';
 import { getAccountData, setAccountData } from '.';
 import { getSettings } from './settings';
 

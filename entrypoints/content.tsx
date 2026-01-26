@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { fetchSuggestions, followUser, unfollowUser } from '@/lib/instagram';
 import { runAutomation } from '@/lib/automation';
 import { toastManager } from '@/components/ui/toast';
-import { MessageType, type ExtensionMessage, type MessageResponse } from '@/lib/types';
+import { MessageType, type ExtensionMessage, type MessageResponse } from '@/types/messages';
 import { App } from './content/app';
 import './content/style.css';
 

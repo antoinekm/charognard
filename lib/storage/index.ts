@@ -1,11 +1,6 @@
 import merge from 'lodash.merge';
-import type {
-  FollowedProfile,
-  DailyActions,
-  UserSettings,
-  AutomationSettings,
-  ActionLog,
-} from '@/lib/types';
+import type { FollowedProfile, DailyActions, UserSettings, AutomationSettings } from '@/types/storage';
+import type { ActionLog } from '@/types/logs';
 import { getCurrentUserId, getCurrentUserIdAsync } from '@/lib/instagram';
 
 export interface AccountData {
@@ -33,8 +28,8 @@ interface LegacyStorageData {
 }
 
 export const STORAGE_KEY = 'ig_extension_data';
-export const DEFAULT_FOLLOW_LIMIT = 150;
-export const DEFAULT_UNFOLLOW_LIMIT = 150;
+export const DEFAULT_FOLLOW_LIMIT = 100;
+export const DEFAULT_UNFOLLOW_LIMIT = 100;
 export const DEFAULT_SKIP_FOLLOWERS = true;
 
 export const DEFAULT_AUTOMATION: AutomationSettings = {

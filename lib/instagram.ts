@@ -1,4 +1,4 @@
-import type { AymlResponse, FriendshipStatus } from './types';
+import type { AymlResponse, FriendshipStatus } from '@/types/instagram';
 
 const IG_APP_ID = '936619743392459';
 

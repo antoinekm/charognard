@@ -1,4 +1,4 @@
-import type { AutomationSettings, AutomationProgress } from '@/lib/types';
+import type { AutomationSettings, AutomationProgress } from '@/types/storage';
 import { getAccountDataAsync, setAccountDataAsync } from '.';
 
 export async function getAutomationSettings(): Promise<AutomationSettings> {
