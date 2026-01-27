@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTab, TabsPanel } from '@/components/ui/tabs';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
-import { XIcon, UsersIcon, HeartIcon, SettingsIcon, LogInIcon, RefreshCwIcon, HistoryIcon } from 'lucide-react';
+import { XIcon, BarChart3Icon, UsersIcon, HeartIcon, SettingsIcon, LogInIcon, RefreshCwIcon, HistoryIcon } from 'lucide-react';
 import { useAuth } from '../hooks/use-auth';
 import APP from '@/constants/app';
 import { SuggestionsTab } from './suggestions';
 import { FollowedTab } from './followed';
 import { SettingsTab } from './settings';
 import { HistoryTab } from './history';
+import { OverviewTab } from './overview';
 
 interface SidePanelProps {
   isOpen: boolean;
@@ -17,10 +18,16 @@ interface SidePanelProps {
 }
 
 export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
-  const [activeTab, setActiveTab] = useState<string | null>('suggestions');
+  const [activeTab, setActiveTab] = useState<string | null>('overview');
   const { isLoggedIn, checkAuth } = useAuth();
 
   const isNotLoggedIn = isLoggedIn === false;
+
+  useEffect(() => {
+    const handleResetTab = () => setActiveTab('overview');
+    document.addEventListener('charognard:reset-tab', handleResetTab);
+    return () => document.removeEventListener('charognard:reset-tab', handleResetTab);
+  }, []);
 
   return (
     <div
@@ -45,6 +52,10 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
         <div className="px-4 pt-2 shrink-0">
           <TabsList>
+            <TabsTab id="onboarding-tab-overview" value="overview">
+              <BarChart3Icon className="size-4" />
+              Overview
+            </TabsTab>
             <TabsTab id="onboarding-tab-suggestions" value="suggestions">
               <UsersIcon className="size-4" />
               Suggestions
@@ -63,6 +74,36 @@ export function SidePanel({ isOpen, onClose, container }: SidePanelProps) {
             </TabsTab>
           </TabsList>
         </div>
+
+        <TabsPanel value="overview" className="flex-1 flex flex-col min-h-0">
+          {isNotLoggedIn ? (
+            <Empty className="flex-1 border-0">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <LogInIcon />
+                </EmptyMedia>
+                <EmptyTitle>Not logged in</EmptyTitle>
+                <EmptyDescription>
+                  Please log in to Instagram to see your overview.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => (window.location.href = 'https://www.instagram.com/accounts/login/')}>
+                    <LogInIcon />
+                    Log in
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={checkAuth}>
+                    <RefreshCwIcon />
+                    Refresh
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
+          ) : (
+            <OverviewTab onNavigate={setActiveTab} />
+          )}
+        </TabsPanel>
 
         <TabsPanel value="suggestions" className="flex-1 flex flex-col min-h-0">
           {isNotLoggedIn ? (

@@ -23,6 +23,21 @@ export const productTourSteps: Tour[] = [
         pointerRadius: 12,
       },
       {
+        icon: <>📊</>,
+        title: 'Your Overview',
+        content: (
+          <>
+            Track your follower and following counts over time with a daily growth chart.
+            Snapshots are recorded automatically every day.
+          </>
+        ),
+        selector: '#onboarding-tab-overview',
+        side: 'bottom',
+        pointerPadding: 4,
+        pointerRadius: 8,
+        clickOnEnter: true,
+      },
+      {
         icon: <>🔍</>,
         title: 'Discover Suggestions',
         content: (
@@ -196,7 +211,8 @@ export function ProductTour({
   const handleClose = useCallback(() => {
     setOnboardingCompleted(tourData.developerFollowed ?? false);
     closeTour();
-    // Close the panel after tour ends
+    // Reset tab to overview and close the panel after tour ends
+    document.dispatchEvent(new CustomEvent('charognard:reset-tab'));
     document.dispatchEvent(new CustomEvent('charognard:close-panel'));
   }, [closeTour, tourData.developerFollowed]);
 
