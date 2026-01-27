@@ -99,11 +99,7 @@ export async function runAutomation(): Promise<AutomationResult> {
   // Log automation completion
   const baseMessage = `${result.followedCount} followed, ${result.unfollowedCount} unfollowed`;
   if (result.errors.length > 0) {
-    // Include first error/reason for context (truncate if too long)
-    const reason = result.errors[0].length > 60
-      ? result.errors[0].substring(0, 57) + '...'
-      : result.errors[0];
-    await loggerAsync.warning('automation_end', `Automation completed - ${baseMessage} (${reason})`);
+    await loggerAsync.warning('automation_end', `Automation completed - ${baseMessage} (${result.errors[0]})`);
   } else {
     await loggerAsync.success('automation_end', `Automation completed - ${baseMessage}`);
   }
