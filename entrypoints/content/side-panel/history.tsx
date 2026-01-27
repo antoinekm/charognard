@@ -18,6 +18,7 @@ import {
   DownloadIcon,
   UploadIcon,
   SearchIcon,
+  CameraIcon,
   AlertCircleIcon,
   CheckIcon,
   AlertTriangleIcon,
@@ -65,6 +66,8 @@ export function HistoryTab() {
         return <UploadIcon className="size-3.5" />;
       case 'export':
         return <DownloadIcon className="size-3.5" />;
+      case 'snapshot':
+        return <CameraIcon className="size-3.5" />;
       default:
         return <HistoryIcon className="size-3.5" />;
     }

@@ -5,7 +5,8 @@ export type LogActionType =
   | 'automation_start'
   | 'automation_end'
   | 'import'
-  | 'export';
+  | 'export'
+  | 'snapshot';
 
 export type LogType = 'info' | 'success' | 'warning' | 'error';
 

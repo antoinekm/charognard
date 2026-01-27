@@ -1,5 +1,6 @@
 import type { ProfileSnapshot } from '@/types/storage';
 import { getAccountData, setAccountData } from '.';
+import { addActionLog } from './logs';
 
 export const MAX_SNAPSHOTS = 90;
 
@@ -17,6 +18,7 @@ export async function addSnapshot(
     accountData.profileSnapshots = [];
   }
 
+  let isNew = false;
   const today = getDateString(Date.now());
   const lastSnapshot = accountData.profileSnapshots[accountData.profileSnapshots.length - 1];
 
@@ -30,6 +32,7 @@ export async function addSnapshot(
       followerCount,
       followingCount,
     });
+    isNew = true;
   }
 
   if (accountData.profileSnapshots.length > MAX_SNAPSHOTS) {
@@ -37,6 +40,14 @@ export async function addSnapshot(
   }
 
   await setAccountData(accountData);
+
+  if (isNew) {
+    await addActionLog(
+      'snapshot',
+      'info',
+      `Snapshot recorded: ${followerCount.toLocaleString()} followers, ${followingCount.toLocaleString()} following`
+    );
+  }
 }
 
 export async function getSnapshots(): Promise<ProfileSnapshot[]> {
