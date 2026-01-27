@@ -5,6 +5,7 @@ export enum MessageType {
   RunAutomation = 'RUN_AUTOMATION',
   UpdateAlarm = 'UPDATE_ALARM',
   TogglePanel = 'TOGGLE_PANEL',
+  RecordSnapshot = 'RECORD_SNAPSHOT',
 }
 
 export interface BaseMessage {
@@ -37,13 +38,18 @@ export interface TogglePanelMessage extends BaseMessage {
   type: MessageType.TogglePanel;
 }
 
+export interface RecordSnapshotMessage extends BaseMessage {
+  type: MessageType.RecordSnapshot;
+}
+
 export type ExtensionMessage =
   | GetSuggestionsMessage
   | FollowUserMessage
   | UnfollowUserMessage
   | RunAutomationMessage
   | UpdateAlarmMessage
-  | TogglePanelMessage;
+  | TogglePanelMessage
+  | RecordSnapshotMessage;
 
 export interface MessageResponse<T = unknown> {
   success: boolean;

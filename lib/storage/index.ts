@@ -1,5 +1,5 @@
 import merge from 'lodash.merge';
-import type { FollowedProfile, DailyActions, UserSettings, AutomationSettings } from '@/types/storage';
+import type { FollowedProfile, DailyActions, UserSettings, AutomationSettings, ProfileSnapshot } from '@/types/storage';
 import type { ActionLog } from '@/types/logs';
 import { getCurrentUserId, getCurrentUserIdAsync } from '@/lib/instagram';
 
@@ -9,6 +9,7 @@ export interface AccountData {
   settings: UserSettings;
   automation: AutomationSettings;
   actionLogs: ActionLog[];
+  profileSnapshots: ProfileSnapshot[];
 }
 
 interface StorageData {
@@ -67,6 +68,7 @@ export function getDefaultAccountData(): AccountData {
     },
     automation: { ...DEFAULT_AUTOMATION },
     actionLogs: [],
+    profileSnapshots: [],
   };
 }
 
@@ -104,6 +106,7 @@ export async function getStorageData(): Promise<StorageData> {
         settings: migratedData.settings,
         automation: migratedData.automation,
         actionLogs: [],
+        profileSnapshots: [],
       };
     }
     await setStorageData(migratedData);

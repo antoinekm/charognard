@@ -3,11 +3,13 @@ import type { AutomationSettings } from '@/types/storage';
 import { getAutomationSettings, getAutomationProgress } from '@/lib/storage/automation';
 
 const ALARM_NAME = 'ig-automation';
+const SNAPSHOT_ALARM_NAME = 'ig-snapshot';
 let isAutomationRunning = false;
 
 export default defineBackground(() => {
-  // Set up alarm on startup
+  // Set up alarms on startup
   setupAlarm();
+  setupSnapshotAlarm();
 
   // Handle extension icon click
   // Use browserAction for MV2 (Firefox) or action for MV3 (Chrome)
@@ -34,6 +36,8 @@ export default defineBackground(() => {
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_NAME) {
       runAutomation();
+    } else if (alarm.name === SNAPSHOT_ALARM_NAME) {
+      recordSnapshot();
     }
   });
 
@@ -184,6 +188,36 @@ async function runAutomation(): Promise<void> {
     await setupAlarm();
   } finally {
     isAutomationRunning = false;
+  }
+}
+
+async function setupSnapshotAlarm(): Promise<void> {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(12, 0, 0, 0);
+
+  if (target <= now) {
+    // Noon already passed today -- run catch-up immediately, then schedule for tomorrow
+    recordSnapshot();
+    target.setDate(target.getDate() + 1);
+  }
+
+  const delayInMinutes = Math.max(1, (target.getTime() - Date.now()) / 60000);
+
+  await browser.alarms.create(SNAPSHOT_ALARM_NAME, {
+    delayInMinutes,
+    periodInMinutes: 24 * 60,
+  });
+}
+
+async function recordSnapshot(): Promise<void> {
+  try {
+    const igTab = await findInstagramTab();
+    if (!igTab?.id) return;
+
+    await browser.tabs.sendMessage(igTab.id, { type: MessageType.RecordSnapshot });
+  } catch {
+    // Silently fail -- no Instagram tab open is fine
   }
 }
 

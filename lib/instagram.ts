@@ -126,6 +126,8 @@ export interface UserInfo {
     profile_pic_url: string;
     is_verified: boolean;
     is_private: boolean;
+    follower_count: number;
+    following_count: number;
   };
 }
 

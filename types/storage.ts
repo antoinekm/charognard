@@ -57,4 +57,10 @@ export interface StorageUsage {
   profilesCount: number;
 }
 
+export interface ProfileSnapshot {
+  timestamp: number;
+  followerCount: number;
+  followingCount: number;
+}
+
 export type ActionType = 'follow' | 'unfollow';

@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
-import { fetchSuggestions, followUser, unfollowUser } from '@/lib/instagram';
+import { fetchSuggestions, followUser, unfollowUser, fetchUserInfo, getCurrentUserId } from '@/lib/instagram';
 import { runAutomation } from '@/lib/automation';
+import { addSnapshot } from '@/lib/storage/snapshots';
 import { toastManager } from '@/components/ui/toast';
 import { MessageType, type ExtensionMessage, type MessageResponse } from '@/types/messages';
 import { App } from './content/app';
@@ -60,7 +61,25 @@ async function handleMessage(message: ExtensionMessage): Promise<MessageResponse
             type: 'success',
           });
         }
+        // Record a snapshot after automation
+        try {
+          const userId = getCurrentUserId();
+          if (userId) {
+            const userInfo = await fetchUserInfo(userId);
+            await addSnapshot(userInfo.user.follower_count, userInfo.user.following_count);
+          }
+        } catch {
+          // Snapshot failure shouldn't affect automation result
+        }
         return { success: true, data: result };
+      }
+      case MessageType.RecordSnapshot: {
+        const userId = getCurrentUserId();
+        if (userId) {
+          const userInfo = await fetchUserInfo(userId);
+          await addSnapshot(userInfo.user.follower_count, userInfo.user.following_count);
+        }
+        return { success: true };
       }
       case MessageType.TogglePanel: {
         document.dispatchEvent(new CustomEvent('charognard:toggle-panel'));
