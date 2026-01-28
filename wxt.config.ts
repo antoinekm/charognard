@@ -12,7 +12,9 @@ export default defineConfig({
     name:
       browser === 'firefox'
         ? 'Charognard: Mass Follow for Instagram™'
-        : 'Charognard: Get Followers, Auto Follow & Tracker for Instagram™',
+        : browser === 'edge'
+          ? 'Charognard: Follow & Unfollow for Instagram™'
+          : 'Charognard: Get Followers, Auto Follow & Tracker for Instagram™',
     permissions: ['tabs', 'storage', 'alarms', 'cookies'],
     host_permissions: ['*://*.instagram.com/*'],
     action: {
